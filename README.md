@@ -1,2 +1,2 @@
 # poppy_esaii
-ultra whastever master thesis
+master thesis

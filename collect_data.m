@@ -12,7 +12,7 @@
 % Author: Dimitris Zervas
 
 %
-clear all, close all
+% clear all, close all
 % fclose(s);
 flag = 0;
 
@@ -21,9 +21,9 @@ index = 1;
 load_system('simulink_signal_generator');
 sim('simulink_signal_generator');
 %% Delete the previous file (you append data)
-delete('input_output_data.txt');
-%% Choose the input data set you want to apply
-inp = input1;
+delete('input_output_data.txt');    % First time you run, it will through a warning.
+%% Choose the input data set, you want to apply
+inp = input3;
 %% Translate volts to pwm_duty
 inp = round(inp.*(255/5));
 % Set direction
@@ -61,14 +61,10 @@ s.BytesAvailableFcn = {@collect_data_buffer,signal,last};
 % The corresponding function header is:
 % function mycallback(obj,event,time)
 
-% To verify the number of values read from the device—including 
+% To verify the number of values read from the device-including 
 % the terminator, use the ValuesReceived property.
 % s.ValuesReceived;
 % 
 % 
 % Connect the serial port object to the device
 fopen(s);
-
-% TO_DO:
-% 1. fclose automaticaly
-% 2. Process data afer data collection
