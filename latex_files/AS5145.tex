@@ -1,0 +1,204 @@
+\newpage
+
+On this chapter it will be discussed the implementation of the electronics of the servo motor that will allow the user to drive the motor and read the position of the rotor using a microcontroller. In first section the sensor for the reading of the position will be presented while in second section it will be presented the driver that was chosen to run the motor. Finally in section three it is presented the microcontroller that is used (Arduino) and the way to use it with the driver and the sensor.
+
+\section{Magnetic Encoder} \label{sec:Magnetic Encoder}
+
+In order to read the position of the motor, the rotary magnetic encoder AS5145 from \textit{Austria Microsystems (AMS)} \cite{AS5145} was chosen. The AS5145H is a contactless magnetic rotary position sensor for accurate angular measurement over a full turn of 360° and over an extended ambient temperature range of -40°C to 150°C. The \textit{absolute} angle measurement provides instant indication of the magnet’s angular position with a resolution of 0.0879° = 4096 positions per revolution via a serial bit stream and as a PWM signal.
+
+\subsection{General Description}
+
+The \textit{AS5145} is a contact-less magnetic encoder for accurate angular measurement over a full turn of 360 degrees. It is a system-on-chip, combining integrated Hall elements, analog front end and digital signal processing in a single device.
+
+To measure the angle, only a simple two-pole magnet, rotating over the center of the chip, is required. The magnet can be placed above or below the IC. The \textit{absolute angle measurement} provides instant indication of the magnet's angular position with resolution of $0.0879\deg = 4096$ positions per revolution. This digital data is available as a serial bit stream and as a PWM signal.
+
+\subsection{Key Features}
+
+\begin{itemize}
+	\item Contact-less high resolution rotational position encoding over a full turn of 360 degrees.
+	\item Two digital 12-bit absolute outputs:
+	\begin{itemize}
+		\item Serial interface
+		\item Pulse width modulated (PWM) output
+	\end{itemize}
+	\item Three incremental outputs
+	\item User programmable zero position
+	\item Failure detection mode for magnet placement, monitoring, and loss of power supply
+	\item Red-Yellow-Green indicators display placement of magnet in Z-axis
+	\item Serial read-out of multiple interconnected AS5145 devices using Daisy-Chain mode
+	\item Tolerant to magnet misalignment and gap variations
+\end{itemize}
+
+
+\newpage
+\subsection{Interfacing with Arduino} \label{subsec:sensor-arduino}
+
+In order to read the position of the rotor, the \textbf{S}ynchronous \textbf{S}erial \textbf{I}nterface (SSI) was used. The schematic of the IC in Figure \ref{Fig:Schematic}, shows which pins need to be used.
+
+\begin{figure}[h]
+	\begin{center}
+		\includegraphics[scale=0.3]{/magnetic_encoder/schematic}
+		\caption{Schematic of AS5145}
+		\label{Fig:Schematic}
+	\end{center}
+\end{figure}
+
+\noindent Where the pins of interest are,
+
+\begin{center}
+	\begin{tabular}{|l l|}
+	\hline \boldmath{$VDD5V$} 	& 5V power supply pin.\\
+	\textbf{CSn}			& Chip Select. Active low.\\
+	\textbf{CLK}			& Clock input of SSI.\\
+	\textbf{DO}			& Data Output of SSI.\\	
+	\textbf{VSS}			& GND	\\	\hline
+	\end{tabular}
+\end{center}
+
+\noindent And the connection between AS5145 pins and Arduino pins are,
+
+
+\begin{center}
+	\begin{tabular}{|c c c|}
+	\hline AS5145 & & \multicolumn{1}{c|}{Arduino}	\\
+	\hline CSn	&	$\leftrightarrow$ &	D10 \\
+	DO	&	$\leftrightarrow$ &	D12 (MISO) \\
+	CLK	&	$\leftrightarrow$ &	D13	\\ \hline	
+	\end{tabular}
+\end{center}
+
+\noindent where, for example, D12 stands for Digital Pin 12.
+
+\newpage
+\subsection{Synchronous Serial Interface (SSI)}
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.3]{/magnetic_encoder/SSI}
+		\caption{SSI Interface}
+		\label{SSI AS5145}
+	\end{center}
+\end{figure}
+
+If $CS_n$ changes to logic low, Data Out (DO) will change from high impedance (tri-state) to logic high and the read-out will be initiated.
+
+\begin{itemize}
+	\item	After a minimum time $t_{CLK FE}$, data is latched into the output shift register with the first falling edge of CLK.
+	\item Each subsequent rising CLK edge shifts out one bit of data.
+	\item The serial word contains 18 bits, the first 12 bits are the angular information $D[11:0]$, the subsequent 6 bits contain system information, about the validity of data.
+	\item A subsequent measurement is initiated by "high" pulse at CSn with a minimum duration of $t_{CSn}$.
+\end{itemize}
+
+
+%%%% DATA CONTENT %%%%%
+\subsection{Data Content}
+
+\begin{itemize}
+	\item \textbf{D11:D0} absolute position data (MSB is clocked out first
+	\item \textbf{OCF} (Offset Compensation Finished), logic high indicates the finished Offset Compensation Algorithm.
+	\item \textbf{COF} (Cordic Overflow), when the bit is set, the data D11:D0 is invalid. The absolute output maintains the last valid angular value. This alarm can be resolved by bringing the magnet within the X-Y-Z tolerance limits.
+	\item \textbf{LIN} (Linearity Alarm), logic high indicates that the input field enerates a critical output linearity. When the bit is set, the data D11:D0 can still be used, but can contain invalid data. This alarm can be resolved by bringing the magnet within the X-Y-Z tolerance limits. 
+	\item \textbf{EVEN PARITY} bit for transmission error detection of bits 1...17 (D11...D0, OCF, COF, LIN, MagINC, MagDEC).
+\end{itemize}
+
+\noindent Data D11:D0 is valid, when the status bits have the following configurations
+
+\begin{center}
+	\begin{tabular}{|c|c|c|c|c|p{5cm}|}
+	\hline 
+	OCF & COF & LIN & MagINC & MagDEC & \multicolumn{1}{c|}{Parity}\\
+	\hline
+	
+	\multirow{4}{*}{1} & \multirow{4}{*}{0} & \multirow{4}{*}{1} & 0 & 0 & \multirow{4}{*}{Even check sum of bits 1:15} \\ \cline{4-5}
+	
+	 & & & 0 & 1 & \\ \cline{4-5}
+	 & & & 1 & 0 & \\ \cline{4-5}
+	 & & & 1 & 1 & \\ \hline
+	\end{tabular}
+\end{center}
+
+\
+
+%%%% Read the position %%%%
+\subsection{Read the position}
+
+
+This is the function to read the sensor.
+
+
+\begin{lstlisting}[style=My_Arduino, label=Arduino read pos,caption=Arduino function to read the position of the rotor]
+uint32_t readSSI () {
+    uint32_t data;
+    //Pulse to initiate new transfer
+    digitalWrite(10,HIGH);
+    digitalWrite(10,LOW);
+    //Receive the 3 bytes (AS5145 sends 18bit word)
+    for (u8byteCount=0; u8byteCount<3; u8byteCount++){
+       u32result <<= 8;  // left shift the result so far - first time shifts 0's-no change
+       SPDR = 0xFF;  // send 0xFF as dummy (triggers the transfer)
+       while ( (SPSR & (1 << SPIF)) == 0);  // wait until transfer complete
+       u8data = SPDR;  // read data from SPI register
+       u32result |= u8data;  //store the byte
+    }
+    // Print only the data no check of flags!
+    u32result >>= 12;
+    data = u32result;
+    u32result = 0;
+    return data;
+}
+\end{lstlisting}
+
+
+\noindent And an example of calling it,
+
+\begin{lstlisting}[style=My_Arduino,label = readSSI() call example, caption=readSSI() call example]
+uint_32t pos = readSSI();
+\end{lstlisting}
+
+\subsection{Selecting Proper Magnet}
+
+Typically the magnet is $6mm$ in diameter and $2.5mm$ in height. Magnetic materials such as rare earth AINiCo/SmCo5 or NdFeB are recommended. The magnetic field strength perpendicular to the die surface has to be in the range of $\pm45mT...\pm75mT$ (peak). The magnet's field is verified using a gauss-meter. The magnetic field Bv at the given distance, along a concentric circle with radius of $1.1mm$ (R1) is in the range of $\pm45mT...\pm75mT$ (see Figure \ref{Fig:Proper Magnet})
+
+\begin{center}
+\begin{figure}[h!]
+	
+		\includegraphics[scale=0.4]{/magnetic_encoder/proper_magnet}
+		\caption{Typical magnet (6x3) and Magnetic Field Distribution}
+		\label{Fig:Proper Magnet}
+	
+\end{figure}
+\end{center}
+
+\newpage
+
+\subsection{Physical Placement of the Magnet}
+
+The best linearity can be achieved by placing the center of the magnet exactly over the defined center of the chip as shown in the drawing below:
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.3]{/magnetic_encoder/place_magnet}
+		\caption{Defined Chip Center and Magnet Displacement Radius}
+		\label{Magnet placement}
+	\end{center}
+\end{figure} 
+
+\
+
+The magnet's center axis must be aligned within a displacement radius $R_d$ of $0.25mm$ from the defined center of IC. The magnet can be placed below or above the device. The distance can be chosen such that the magnetic field of the die surface is within specified limits. The typical distance "z" between the magnet and the package surface is $0.5mm$ to $1.5mm$, provided the use of the recommended magnet material and dimensions ($6mm \times 3mm$).
+
+
+\subsection{Alignment Mode}\label{Sec:alignment_mode}
+
+The alignment mode simplifies centering the magnet over the center of the chip to gain maximum accuracy.
+
+Alignment mode can be enabled with the falling edge of \textit{CSn} while \textit{PDIO = logic high}. Afterwards, there are two ways to check if the magnet is proper placed.
+
+\begin{itemize}
+\item In alignment mode, the Data bits D11:D0 of the SSI change to a 12-bit displacement amplitude output. A high value indicates large X or Y displacement, but also higher absolute magnetic field strength. The magnet is properly aligned, when the difference between highest and lowest value over one full turn is at a minimum. Under normal conditions, a properly aligned magnet will result in a reading of less than 128 over a full turn. Stronger magnets or short gaps between magnet and IC will show values larger than 128. These magnets are still properly aligned as long as the difference between highest and lowest value over one full turn is at a minimum.
+
+\item Under normal conditions, the \textit{MagINCn} and \textit{MagDECn} indicators will be equal to 1 when the alignment mode reading is less than 128. At the same time, both hardware pins MagINCn (pin 1) and MagDECn (pin 2) will be pulled to VSS. A properly aligned magnet will therefore produce a $MagINC=MagDEC=1$ signal throughout a full $360\deg$ turn of the magnet.
+
+\end{itemize}
+
+The Alignment mode can be reset to normal operation by a power-on-reset (disconnect/re-connect power supply) or by a falling edge on CSn with PDIO = low.

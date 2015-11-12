@@ -1,0 +1,174 @@
+
+
+\lstset { %
+    language=C++,
+    basicstyle=\footnotesize,% basic font setting
+    breaklines=true,
+    frame=single
+}
+
+\section{Magnetic Encoder}\label{Sec:Mag_enc}
+
+In order to read the position of the motor, the rotary magnetic encoder AS5145 from \textit{Austria Microsystems (AMS)} was selected. The AS5145H is a contactless magnetic rotary position sensor for accurate angular measurement over a full turn of 360° and over an extended ambient temperature range of -40°C to 150°C. The absolute angle measurement provides instant indication of the magnet’s angular position with a resolution of 0.0879° = 4096 positions per revolution via a serial bit stream and as a PWM signal.
+
+\subsection{General Description}
+
+The \textit{AS5145} is a contact-less magnetic encoder for accurate angular measurement over a full turn of 360 degrees. It is a system-on-chip, combining integrated Hall elements, analog front end and digital signal processing in a single device.
+
+To measure the angle, only a simple two-pole magnet, rotating over the center of the chip, is required. The magnet can be placed above or below the IC. The \textit{absolute angle measurement} provides instant indication of the magnet's angular position with resolution of $0.0879\deg = 4096$ positions per revolution. This digital data is available as a serial bit stream and as a PWM signal.
+
+\subsection{Key Features}
+
+\begin{itemize}
+	\item Contact-less high resolution rotational position encoding over a full turn of 360 degrees.
+	\item Two digital 12-bit absolute outputs:
+	\begin{itemize}
+		\item Serial interface
+		\item Pulse width modulated (PWM) output
+	\end{itemize}
+	\item Three incremental outputs
+	\item User programmable zero position
+	\item Failure detection mode for magnet placement, monitoring, and loss of power supply
+	\item Red-Yellow-Green indicators display placement of magnet in Z-axis
+	\item Serial read-out of multiple interconnected AS5145 devices using Daisy-Chain mode
+	\item Tolerant to magnet misalignment and gap variations
+\end{itemize}
+
+\subsection{Interfacing with the micro controller}
+
+In order to read the position of the rotor, the serial interface (SSI) was used. The schematic of the IC in Fig. \ref{Fig:Schematic AS5145}, shows which pins need to be used.
+
+\begin{figure}	\label{Fig:Schematic AS5145}
+	\begin{center}
+		\includegraphics[scale=0.3]{/magnetic_encoder/schematic}
+		\caption{Schematic of AS5145}
+	\end{center}
+\end{figure}
+
+\noindent Where the pins of interest are,
+
+\begin{center}
+	\begin{tabular}{|l l|}
+	\hline \boldmath{$VDD5V$} 	& 5V power supply pin.\\
+	\textbf{CSn}			& Chip Select. Active low.\\
+	\textbf{CLK}			& Clock input of SSI.\\
+	\textbf{DO}			& Data Output of SSI.\\	
+	\textbf{VSS}			& GND	\\	\hline
+	\end{tabular}
+\end{center}
+
+\noindent And the connection between AS5145 pins and Arduino pins is,
+
+
+\begin{center}
+	\begin{tabular}{|c c c|}
+	\hline AS5145 & & \multicolumn{1}{c|}{Arduino}	\\
+	\hline CSn	&	$\leftrightarrow$ &	D10 \\
+	DO	&	$\leftrightarrow$ &	D12 (MISO) \\
+	CLK	&	$\leftrightarrow$ &	D13	\\ \hline	
+	\end{tabular}
+\end{center}
+
+\noindent where, for example, D12 stands for Digital Pin 12.
+
+
+\subsubsection{Synchronous Serial Interface (SSI)}
+
+\begin{figure}[h] \label{SSI AS5145}
+	\begin{center}
+		\includegraphics[scale=0.3]{/magnetic_encoder/SSI}
+		\caption{SSI Interface}
+	\end{center}
+\end{figure}
+
+If $CS_n$ changes to logic low, Data Out (DO) will change from high impedance (tri-state) to logic high and the read-out will be initiated.
+
+\begin{itemize}
+	\item	After a minimum time $t_{CLK FE}$, data is latched into the output shift register with the first falling edge of CLK.
+	\item Each subsequent rising CLK edge shifts out one bit of data.
+	\item The serial word contains 18 bits, the first 12 bits are the angular information $D[11:0]$, the subsequent 6 bits contain system information, about the validity of data.
+	\item A subsequent measurement is initiated by "high" pulse at CSn with a minimum duration of $t_{CSn}$.
+\end{itemize}
+
+\subsubsection{Data Content}
+
+\begin{itemize}
+	\item \textbf{D11:D0} absolute position data (MSB is clocked out first
+	\item \textbf{OCF} (Offset Compensation Finished), logic high indicates the finished Offset Compensation Algorithm.
+	\item \textbf{COF} (Cordic Overflow), when the bit is set, the data D11:D0 is invalid. The absolute output maintains the last valid angular value. This alarm can be resolved by bringing the magnet within the X-Y-Z tolerance limits.
+	\item \textbf{LIN} (Linearity Alarm), logic high indicates that the input field enerates a critical output linearity. When the bit is set, the data D11:D0 can still be used, but can contain invalid data. This alarm can be resolved by bringing the magnet within the X-Y-Z tolerance limits. 
+	\item \textbf{EVEN PARITY} bit for transmission error detection of bits 1...17 (D11...D0, OCF, COF, LIN, MagINC, MagDEC).
+\end{itemize}
+
+\noindent Data D11:D0 is valid, when the status bits have the following configurations
+
+\begin{center}
+	\begin{tabular}{|c|c|c|c|c|p{5cm}|}
+	\hline 
+	OCF & COF & LIN & MagINC & MagDEC & \multicolumn{1}{c|}{Parity}\\
+	\hline
+	
+	\multirow{4}{*}{1} & \multirow{4}{*}{0} & \multirow{4}{*}{1} & 0 & 0 & \multirow{4}{*}{Even check sum of bits 1:15} \\ \cline{4-5}
+	
+	 & & & 0 & 1 & \\ \cline{4-5}
+	 & & & 1 & 0 & \\ \cline{4-5}
+	 & & & 1 & 1 & \\ \hline
+	\end{tabular}
+\end{center}
+
+\
+
+\subsubsection{Arduino Code for reading AS5145}
+
+This is the function to read the sensor.
+
+\begin{lstlisting}[style=My_Arduino, caption=Function readSSI() to read the position]
+uint32_t readSSI () {
+    uint32_t data;
+    //Pulse to initiate new transfer
+    digitalWrite(10,HIGH);
+    digitalWrite(10,LOW);
+    //Receive the 3 bytes (AS5145 sends 18bit word)
+    for (u8byteCount=0; u8byteCount<3; u8byteCount++){
+       u32result <<= 8;  // left shift the result so far - first time shifts 0's-no change
+       SPDR = 0xFF;  // send 0xFF as dummy (triggers the transfer)
+       while ( (SPSR & (1 << SPIF)) == 0);  // wait until transfer complete
+       u8data = SPDR;  // read data from SPI register
+       u32result |= u8data;  //store the byte
+    }
+    // Print only the data no check of flags!
+    u32result >>= 12;
+    data = u32result;
+    u32result = 0;
+    return data;
+}
+\end{lstlisting}
+
+
+\noindent And an example of calling it,
+
+\lstset { frame = None}
+
+\begin{lstlisting}
+uint_32t pos = readSSI();
+\end{lstlisting}
+
+\subsubsection{Selecting Proper Magnet}
+
+Typically the magnet is $6mm$ in diameter and $2.5mm$ in height. Magnetic materials such as rare earth AINiCo/SmCo5 or NdFeB are recommended. The magnetic field strength perpendicular to the die surface has to be in the range of $\pm45mT...\pm75mT$ (peak). The magnet's field is verified using a gauss-meter. The magnetic field Bv at the given distance, along a concentric circle with radius of $1.1mm$ (R1) is in the range of $\pm45mT...\pm75mT$ (see Fig)
+
+\
+
+Figure here
+
+
+\subsubsection{Physical Placement of the Magnet}
+
+The best linearity can be achieved by placing the center of the magnet exactly over the defined center of the chip as shown in the drawing below:
+
+\
+Figure Here 
+
+\
+
+The magnet's center axis must be aligned within a displacement radius Rd of $0.25mm$ form the defined center of IC. The magnet can be placed below or above the device. The distance can be chosen such that the magnetic field of the die surface is within specified limits. The typical distance "z" between the magnet and the package surface is $0.5mm$ to $1.5mm$, provided the use of the recommended magnet material and dimensions ($6mm \times 3mm$).

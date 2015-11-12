@@ -1,0 +1,437 @@
+
+
+
+\section{Introducing the GUI}
+
+The proper tune of a \textit{PID} controller is most of the times a tedious process. Usually the designer, first creates the mathematical model, then designs the simulation where he is tuning the gains of the controller and finally he applies the controller to the real system. In most of the cases the result of the simulation don't coincide with the result of the real system. Some of the reasons for that could be, the uncertainty of the model or the difficulty to model some physical phenomena, such as friction, backlashes etc. 
+
+The solution for that, is that the designer must re-tune the gains empirically based on experimental results or using some other techniques. It is a process that can be time consuming, as the choice of the gains is based purely on the designer's intuition.
+
+In order to help with this process and make it easier, an application was created, where the user can see the output data of the motor \textit{live}, compared to the reference signal and tune the PID gains \textit{"online"}. It also provides the option to create its own reference signals. Figure \ref{fig:main_window} shows the main window.
+
+The application was implemented using \textit{Python}. More specific \textit{PyQt4} was used. \textit{PyQt4} is a set of \textit{Python} bindings for \textit{Qt}. \textit{Qt} is a cross-platform application development framework for desktop, embedded and mobile. Someone can find more informations at \cite{Qt} and \cite{PyQt}. The application is communicating through serial communication with an Arduino, on which the driver of the motor is connected, as well as the sensor. For this implementation was used the driver that was chosen and discussed in Section \ref{sec:Driver} and the magnetic encoder as discussed in Section \ref{sec:Magnetic Encoder}. Through this section, only some of the \textit{Python} code is presented because of its size. At the end of this section the full Arduino code is presented.
+
+\
+
+\begin{figure}[b!]
+	\centering
+		\includegraphics[scale=0.35]{/GUI/main_window.png}
+		\caption{Main Window}
+		\label{fig:main_window}
+\end{figure}
+
+\newpage
+In Fig. \ref{fig:main_window} is shown the main window of the application. It consists of 3 parts,
+
+\begin{itemize}
+	\item The figure part, where the output data is compared with the reference signal
+	\item The knobs part, to tune the P/I/D gains
+	\item the configuration part, where you can choose the reference signal you want to apply, the serial port to connect to, and to start/stop the process.
+\end{itemize}
+
+
+\subsection{Knobs section} \label{sub:knobs}
+
+The three knobs are to modify the P/I/D gains accordingly. There are three characteristics for each knob. The \textit{\textbf{range}}, the \textit{\textbf{mid}} value and the \textit{\textbf{step}}. The range is expressed as $\pm val$ the \textit{mid} value. The \textit{step} refers to the minimum change on the knob value. For example, the original configuration of the knobs are,
+
+\begin{center}
+\captionof{table}{Knobs original configuration} \label{Tab:knob_config}
+\begin{tabular}{|c|c|}
+	\hline mid & 10 \\
+	\hline range	 & $\pm10$ \\
+	\hline step	& 0.1 \\
+	\hline		
+\end{tabular}
+\end{center}
+
+\noindent So with $mid = 10$ the range is $[0-20]$ and every movement of the knob will change the value by $\pm0.1$.
+
+Under of each knob, there is a \textit{"Line Edit"} with original value of 10. This corresponds to the mid value of the knob. For example, with the original configuration described in Table \ref{Tab:knob_config}, if the user enters the value 20 in the \textit{Line Edit}, the press of \textit{enter} will result to a range of $[10-30]$ with $step=0.1$ and of course $mid = 20$. The result is shown in Fig. \ref{fig:knob(P)_new_config},
+
+\begin{figure}[h!]
+	\centering
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[scale=0.6]{/GUI/knob_original_config.png}
+		\caption{knob(P) original configuration}
+		\label{fig:knob_original_config}
+	\end{subfigure}%
+	~
+	\begin{subfigure}[t]{0.3\textwidth}
+		\centering
+		\includegraphics[scale=0.6]{/GUI/knob_config_new.png}
+		\caption{knob(P) new configuration}
+		\label{fig:knob(P)_new_config}
+	\end{subfigure}
+\caption{knob(P) configuration through \textit{mid} value}
+\label{fig:knob_config}
+\end{figure}
+
+
+The user also has the choice to change the other two parameters (\textit{range} and \textit{step}). Under the \textit{"Tools"} there are three more tabs, \textit{knob(P)}, \textit{knob(I)} and \textit{knob(D)}. By clicking any of them, a new \textit{Dialog} window opens as it is shown in Fig. \ref{fig:knob_p}. This \textit{input dialog} window is modeless, which means that does not block the main window. Therefore, the user can also reconfigure the knobs while the process is running and not only in advance.
+
+
+\begin{figure}[t!]
+\centering
+	\includegraphics[scale=0.6]{/GUI/knob_p.png}
+	\caption{knob(P) configuration window}
+	\label{fig:knob_p}
+\end{figure}
+
+
+\subsection{Creating Reference Signals}
+
+Under the \textit{Signal} option in the tool bar, the are two more tabs, \textit{\textbf{New Reference Signal}} and \textit{\textbf{New Periodic Reference Signal}}. The first choice is to create a \textit{custom} signal and the later allows the user to create either a \textit{square} or a \textit{sawtooth} signal.
+
+\subsubsection{New Reference signal} \label{sec:custom_signal}
+
+
+\begin{figure}[h!]
+\centering
+	\includegraphics[scale=0.5]{/GUI/new_custom.png}
+	\caption{New Reference Signal Main Window}
+	\label{fig:new_custom}
+\end{figure}
+
+By selecting \textit{New Reference Signal} the window of Fig. \ref{fig:new_custom} pops up. This windows contains,
+
+\begin{itemize}
+	\item A \textit{Line Edit} to enter the name of the signal
+	\item The \textit{Figure} that shows the signal as the user creates it
+	\item A \textit{Line Edit} to enter the Sampling Time
+	\item A \textit{Line Edit} to enter a point in the form $time\_val, angle\_val$. \textit{Time} is the x-axis coordinate of the point and \textit{angle} the y-axis coordinate of the point
+	\item A button that allows the user to enter the \textit{next} point
+	\item A button (OK) to finish the process of crating a signal and to return to the main window.
+\end{itemize}
+
+There are some points that need to be noticed. The first one has to do with the name of the signal. In the main window, there is a \textit{combo} box that -will- contain all the signals that the user created (see Fig. \ref{fig:main_window}). In the \textit{New reference Signal} window of Fig, \ref{fig:new_custom}, by clicking the \textit{OK} button the name of the signal will populate the list of the \textit{combo} box in the main window. Therefore, if the user enters a name that already exist, he will not be able to continue, unless he will change the name. The second point has to do with the form of the point(time,angle). Table \ref{Tab:custom_signal_points}, shows a sequence of points and Fig. \ref{fig:custom_signal} the resulting signal.
+
+
+\begin{center}
+	\captionof{table}{Example of a sequence of points for custom refrence signal} \label{Tab:custom_signal_points}
+	\begin{tabular}{|c|c|c|c|c|c|c|c|}
+		\hline 0,15 & 1,15 & 1,-20 & 1.5,-20 & 1.5,10 & 3,10 & 3,0 & 4,0 \\ \hline
+	\end{tabular}
+\end{center}
+
+
+\begin{figure}[h!]
+\centering
+	\includegraphics[scale=0.5]{/GUI/custom_signal.png}
+	\caption{The signal results from the point of Table \ref{Tab:custom_signal_points}}
+	\label{fig:custom_signal}
+\end{figure}
+
+\noindent \textbf{Note!}: All the reference signals start from (0,0).
+
+The final point that needs to be noticed, is the \textit{Sampling Time}. By clicking the button OK, except of adding the signal to the \textit{combo} box in the main window, it also samples the line. In the example of Fig. \ref{fig:custom_signal} the \textit{Sampling Time} is 0.02 and the total duration of the signal is 4 seconds. That means that after the sampling, the signal is a \textit{list} of $4/0.02 = 200$ points. The reason for that is explained in Section \ref{sec:COM}. The value of the \textit{Sampling Time} \textbf{must be} equal to the \textit{control loop} as this was defined in Section \ref{sec:Control Loop}.
+
+\subsubsection{New Periodic Reference Signal}
+
+Apart of custom reference signals, the user also has the option to create \textit{square} or \textit{sawtooth} signals. By selecting \textbf{Signal}$\rightarrow$\textbf{New Periodic Reference Signal} from the tool bar, a new \textit{Dialog} window will appear, as show in Fig. \ref{fig:periodic_main}. For either the \textit{square} or the \textit{sawtooth} signal the parameters for the user to configure are,
+
+\begin{itemize}
+	\item The \textit{Name} of the signal
+	\item The total \textit{Time} of the signal
+	\item The \textit{Sampling Time}
+	\item The \textit{Amplitude} of the signal
+	\item The \textit{Frequency} of the signal
+\end{itemize}
+
+The \textit{Name} of the signal is working with the same way as for the custom reference signal described in Section \ref{sec:custom_signal}. If the name already exists, the user cannot proceed unless he change the name. The total \textit{Time} and the \textit{Sampling Time} also work as described in Section \ref{sec:custom_signal}. And finally, the \textit{Amplitude} and the \textit{Frequency}, are the actual parameters of the signal. There is also a \textit{combo} box that allows the user to choose the type of the signal.
+
+\begin{figure}[h!]
+\centering
+	\includegraphics[scale=0.5]{/GUI/periodic_signal_main_window.png}
+	\caption{Main window for creating a Periodic Reference Signal}
+	\label{fig:periodic_main}
+\end{figure}
+
+Once all the fields are proper complete, the OK button will become active and the user will return to the main window where, if he choose in the \textit{combo} box the signal just created, he will see the result plotted in the main figure. Fig. \ref{fig:periodic_result}, shows the result of the signal created in Fig. \ref{fig:periodic_main}.
+
+\begin{figure}[h!]
+\centering
+	\includegraphics[scale=0.5]{/GUI/periodic_result.png}
+	\caption{The signal created on Fig. \ref{fig:periodic_main} plotted in the main figure.}
+	\label{fig:periodic_result}
+\end{figure}
+
+\subsection{Configuration section}
+
+On this part of the main window the user first has to \textit{Scan} for any available port and there is a button for it. The list of all the available ports will appear in the specific \textit{combo} box. 
+
+After the creation of at least one reference signal, it must be selected through the according \textit{combo} box. Once selected, the signal will be plotted in the main figure.
+
+After the selection of the port and the reference signal, the \textit{Start} button will become active and the process is ready to begin.
+
+
+\section{Communication} \label{sec:COM}
+
+The communication between the application (Python) and the controller (Arduino) was implemented through the serial interface. To achieve this, the \textbf{pySerial} library was used \cite{PySerial}. 
+
+While it is possible to create specific timed loops in \textit{python}, under any operating system this loop can not be guaranteed to be accurate every time. Something that is easy to achieve in a micro-controller such as Arduino, in a way that was described in Section \ref{sec:Control Loop}. For that reason, every communication between Arduino and Python is triggered by Arduino.
+
+By pressing the \textit{Start} button on the main window of the application, Arduino is restarted through the \textit{pySerial} library to ensure that both sides are synchronized. After that, Arduino, for every control loop, sends once the character 's' that stands for start. If Python will receive this character, both sides are ready for the data exchange. Since the communication is 1-on-1 it is possible for both sides to know exactly what to expect from the other side. That makes simple the process of validating that the data were transferred correctly.
+
+\subsection{Python side} \label{subsec:app_COM}
+
+Since Python-application received the 's' character from Arduino, is ready to send data to it. That data is a fixed serial \textit{word} consists of 10 bytes. Table \ref{Tab:app_serial_word}, shows an example of this serial word.
+
+\begin{center}
+	\captionof{table}{Serial word to be sent to Arduino} \label{Tab:app_serial_word}
+	\begin{tabular}{|c|c|c|c|}
+		\hline 
+		\texttt{start\_cmd} (1 byte) & \texttt{reference-float} (4 bytes) & \texttt{gain\_cmd} (1 byte) & \texttt{gain-float} (4 bytes) \\
+		\hline
+	\end{tabular}
+\end{center}
+
+\noindent The start command can be one of the following bytes,
+
+\begin{center}
+	\captionof{table}{Start commands} \label{Tab:start_cmd}
+	\begin{tabular}{|c|c|c|}
+		\hline 
+		\textbf{start\_cmd} & \textbf{Byte} & \textbf{Description} \\
+		\hline
+		\texttt{startCx\_f} & \texttt{0xf0} & Full word: reference + gain \\
+		\hline 
+		\texttt{startCx\_e} & \texttt{0xf1} & "Empty" word: reference + zeros\\
+		\hline
+		\texttt{stopCx} & \texttt{0xf2} & Stop word: zeros + zeros \\
+		\hline	
+	\end{tabular}
+\end{center}
+
+\noindent where the gain command can be one of the following bytes,
+
+\begin{center}
+	\captionof{table}{Gain commands} \label{Tab:gain_cmd}
+	\begin{tabular}{|c|c|c|}
+		\hline 
+		\textbf{Command} & \textbf{Byte} & \textbf{Description} \\
+		\hline
+		\texttt{P\_Gain} & \texttt{0xf3} & Update the P gain \\
+		\hline 
+		\texttt{I\_Gain} & \texttt{0xf4} & Update the I gain\\
+		\hline
+		\texttt{D\_Gain} & \texttt{0xf5} & Update the D gain \\
+		\hline
+		\texttt{No\_Gain} & \texttt{0xf6} & No gain update \\
+		\hline
+	\end{tabular}
+\end{center}
+
+Every time, the data exchange from both sides is happening inside the "time window" of the control loop. Since this loop is at the level of milliseconds, it is impossible for the user to change the value of two knobs on the same time. Therefore, there is no need for the \textit{serial word} to contain the float values of all three gains. If that was the case, then every \textit{Serial word} sent from Python to Arduino would consist of 17 bytes. Instead, with the use of the \textit{gain command} we indicate to Arduino which gain to update every time.
+
+Also, it is obvious that most of the \textit{serial words} that are sent from the application wouldn't contain any change in any gain value, as the user is not able to change values that fast. For that reason, the \textit{\texttt{"startCx\_e"}} command was introduced, to indicate to Arduino, that on this word there is only the new reference value, a useful information for the word decomposition from the Arduino side, as it is shown in Section \ref{arduino_COM}. The \textit{\texttt{"startCx\_f"}} is for the case where there is a change on one gain and the \textit{serial word} is "full". And finally, \textit{\texttt{"stopCx"}} indicates to Arduino, that this is a \textit{serial word} with all zeros, which means that the whole reference signal was sent. Listing \ref{code:Python buffer}, shows the Python code for constructing the \textit{Serial word}.
+
+It is clear now why the reference signal is sampled and why in Section \ref{sec:custom_signal}, was pointed out that the \textit{Sampling Time} of the reference signal and the \textit{control loop} \textbf{must be} equal. If the reference signal had different sampling time, then the timing of both the signals (reference and output) wouldn't coincide in the plot at the main figure and of course, the output wouldn't be representative of what the user would want.
+
+The process of communication between these two sides contains mainly, data sent, data received and refreshing the main figure. All these processes are time consuming and must be complete before the new time "window" of the next control loop. If the implementation of all these code is done in a "serial" manner, then there would be time "windows" where there would be no time to check any change in the knobs. This would translate to the user as some kind of "lag" (delay) in the movement of the knobs. To solve this issue, the communication part of the code, was originally implemented using the threading interface, \cite{NoThreading}. It was observed though, that the communication was not following the time "window" (there were times that needed two or even three control loops in order to send the new reference value). The reason of that was, as it is stated in \cite{NoThreading},
+
+``...due to the \textit{Global Interpreter Lock}, only one thread can execute Python code at once...If you want your application to make better use of the computational resources of multi-core machines, you are advised to use \textbf{multiprocessing}.''
+
+Hence by using the "multiprocessing" interface \cite{Multi} one processor is used for the communication process allowing to simultaneously exchange data with Arduino, refresh the main figure and change the value of any knob.
+
+The most "\textit{multiprocessing}"-safe way to transfer data between the \textit{process} and the main application, is by use of Queues \cite{Multi}. For that a reason a FIFO Queue was created named \texttt{gain\_q} . Every time a knob is moved, first the name ('P', 'I' or 'D') of the knob and then the value of the knob are added to the \texttt{gain\_q}. Therefore if the size of the Queue is equal to 2, that means there is a change to a knob. An information used for the construction of the \textit{Serial word}.
+
+\
+
+\begin{lstlisting}[style=My_Python, caption=Construction of Serial word, label=code:Python buffer]
+# the reference value to send
+self.ref = self.reference[self.ref_counter]
+# value1 is the first float to be send (the reference)
+value1 = struct.pack('%sf' % 1, self.ref)
+
+# Update the gains
+if self.gain_q.qsize() == 2:
+    let = self.gain_q.get()
+    self.new_gain = self.gain_q.get()
+
+    if let == 'P':
+        self.command_gain = command.p
+    elif let == 'I':
+        self.command_gain = command.i
+    elif let == 'D':
+        self.command_gain = command.d
+elif self.gain_q.qsize == 1:    # if size less than 2 (smth went wrong!), clear the queue
+    trash = self.gain_q.get()
+
+# If the knobs didn't change, send just the reference (startCx_e)
+if self.new_gain == self.prev_gain:
+    command_start = command.startCx_e
+    self.command_gain = command.x
+    # value2 is the second float to be send (the gain), in that case, 0.
+    value2 = struct.pack('%sf' % 1, float(0))
+else:
+    self.prev_gain = self.new_gain
+    command_start = command.startCx_f
+    value2 = struct.pack('%sf' % 1, self.new_gain)
+
+# Construct the buffer
+buf = bytearray([command_start, ord(value1[0]), ord(value1[1]), ord(value1[2]), ord(value1[3]),
+                 self.command_gain, ord(value2[0]), ord(value2[1]), ord(value2[2]), ord(value2[3])])
+
+\end{lstlisting}
+
+
+
+
+
+\subsection{Arduino side} \label{arduino_COM}
+
+As it was already mentioned, it is very important the data exchange between \textit{Python} and \textit{Arduino} to be complete in every "time window" defined by Arduino as \textit{control loop}. The \textit{ATmega328} micro-controller (Arduino), has a \textbf{U}niveral \textbf{S}ynchronous and \textbf{A}synchronous serial \textbf{R}eceiver and \textbf{T}ransmitter (USART). The user can find more details in the datasheet \cite{Arduino}, but what is need to be clear, is that it receives 8-bit of data in every "step".
+
+In order to achieve the communication as fast as possible, the use of interrupts was necessary. Arduino has already implemented a \textit{Serial} library that can be used, but it is already using the desired interrupts. Therefore, the programming of the USART had to be done manually. In order to explain how the code works, first is necessary to explain the set-up of the variables. 
+
+\noindent First the incoming data buffer is defined, \textit{\textbf{bufferRx}}
+
+
+\begin{lstlisting}[style=My_Arduino, caption=Buffer to store the incoming data,
+	label=lst:bufferRx]
+volatile unsigned char counterRx = 0; 
+volatile unsigned char bufferRx[9] = {0,0,0,0,0,0,0,0,0};
+\end{lstlisting}
+
+As it is already mentioned earlier, \textit{Python side} is sending a word of length of 10 bytes every time. The strategy is to receive the full word, and then decompose it accordingly. There is also a counter \textit{\textbf{counterRx}} to allow indexing this buffer. The reason these variable are defined as \textit{volatile} is in order to be able to used inside an interrupt routine.
+
+\noindent The definition of the floats that are received and sent are shown in Listing \ref{code:ard:floats-def}. Here is worth noticing, that for the Arduino environment, \textit{Floating-point} numbers are stored as 32 bits (4 bytes).
+
+
+\begin{lstlisting}[style=My_Arduino, caption=Floats and their pointers to be sent/received,
+	label=code:ard:floats-def]
+
+// Number to be sent
+float pos = 0;
+unsigned char *pointer_pos = (unsigned char *)&pos;
+// Numbers to be received
+float ref = 0;
+float *pointer_ref = (float *)&bufferRx[1];
+float gain = 0;
+float *pointer_gain = (float *)&bufferRx[6];
+// Actual P/I/D gains
+float P = 0;
+float I = 0;
+float D = 0;
+\end{lstlisting}
+
+\noindent The \textit{pos} float is used to store the position value that was read from the sensor and will be sent to the \textit{Python side}. As it is mentioned, the structure of the incoming \textit{serial word} is well known (Table \ref{Tab:app_serial_word}). Therefore it is certain that in \textit{$bufferRx[1]$} will be the first byte of the \textit{reference-float}. By defining a float as \textit{ref}, we conserve 4 bytes in the memory. With the use of pointer, we can connect that space of the memory with the specific part of the buffer. With that way, the value of the float \textit{ref}, is defined by the bytes \textit{bufferRx$[1:4]$}. Similarly the value of the float \textit{gain} is defined by the bytes \textit{bufferRx$[6:9]$}.
+
+
+
+
+
+
+
+\subsubsection{Manual Serial}
+
+To start a \textit{Serial} communication, first the USART module needs to be initiated. At the very top of the Arduino code, some definition are made that specify the \textit{BAUDRATE} of the port.
+
+\begin{lstlisting}[style=My_Arduino, caption=BAUDRATE definitions,label=code:ard:baud]
+// USART initialization def's
+#define FOSC 16000000UL   //clock speed
+#define BAUD 115200     //desired baud rate
+#define MYUBRR (FOSC/4/BAUD-1)/2
+\end{lstlisting}
+
+\noindent Now it is possible to initialize the port,
+
+\begin{lstlisting}[style=My_Arduino, caption=USART\_Init, label=code:ard:USART init]
+void USART_Init (unsigned int ubrr)
+{
+  UCSR0A = 0;
+  UCSR0A |= (1<<U2X0);
+  /* Set baud rate */
+  UBRR0H = (unsigned char)(ubrr>>8);
+  UBRR0L = (unsigned char)(ubrr);
+  UCSR0B = B00000000;
+  // Enable receiver and transmitter 
+  UCSR0B |= (1 << RXEN0) | (1 << TXEN0);
+  UCSR0C = B00000000;
+  // Set frame: 8data, 1 stp
+  UCSR0C |= (1 << UCSZ01) | (1 << UCSZ00);
+   
+}
+\end{lstlisting}
+
+\noindent And a function that can be used to send data,
+
+
+\begin{lstlisting}[style=My_Arduino,caption=Function to transmit data, label=code:ard:USART tx]
+void USART_Tx (char data)
+{
+  /* Wait for empty transmit buffer */
+  while ( !(UCSR0A & (1<<UDRE0)) ) {
+  }
+  /* Put data into buffer, sends the data */
+  UDR0 = data;
+}
+\end{lstlisting}
+
+\noindent Every time there are 8 bits that are received successfully, an interrupt is triggered. These byte, is stored to the register \textbf{UDR0}. To take advantage of this interrupt, the content of \textit{UDR0} is stored directly to the \textit{bufferRx}, inside the interrupt routine. All it has to be taken care for, is to increase the \textit{counterRx} every time and set it to zero again when needed.
+
+\begin{lstlisting}[style=My_Arduino, caption=Incoming data interrupt routine,
+	label=code:ard:USART rx]
+ISR(USART_RX_vect) {
+  bufferRx[counterRx] = UDR0;
+  counterRx++;
+}
+\end{lstlisting}
+
+
+
+
+
+
+\subsubsection{Control Loop}
+
+There are three boolean flags, namely \textit{com}, \textit{txOn} and \textit{rxOn}. The \textit{com} flag is to indicate if the communication inside the time window of one control loop is complete. The rest two flags, are to indicate which part of the code to execute according to either if it has to receive data (\textit{rxOn$==$true}) or it has to transmit data (\textit{txOn$==$true}). The pieces of the code for each of the cases are following,
+
+\
+
+
+\begin{lstlisting}[style=My_Arduino, caption=Read and Send data, label=code:ard:rx tx]
+if (txOn==true) {     
+	/* Controller calculation */
+    // Here you apply your controller, for example,
+    pos = ref + P;
+    /* --- end of Controller --- */
+    for (i=0; i<4; i++) {
+    		USART_Tx(pointer_pos[i]);
+    }
+    for (i=0; i<4; i++) {
+    		USART_Tx(eof[i]);
+    }
+    txOn = false;
+    sendOnce = true;
+    com = false;  //finished the com, now wait for the rest of Ts
+}  
+  
+if (rxOn == true) {
+	switch (bufferRx[0]) {
+    		case 0xf0:  //read reference + gain
+        		rxOn = false;
+            ref = (*pointer_ref);
+            // Gains update (one at a time)
+           	if (bufferRx[5] == 0xf3) {
+            		P = (*pointer_gain);
+           	}else if (bufferRx[5] == 0xf4) {
+               	I = (*pointer_gain);
+            }else if (bufferRx[5] == 0xf5) {
+               	D = (*pointer_gain);
+            }
+            txOn = true;
+            break;
+      	case 0xf1:  //read only reference
+        		rxOn = false;
+            txOn = true;
+            ref = (*pointer_ref);
+            break;
+       	case 0xf2:  //stop
+           	rxOn = false;
+           	txOn = false;
+           	break;
+	}
+}
+\end{lstlisting}

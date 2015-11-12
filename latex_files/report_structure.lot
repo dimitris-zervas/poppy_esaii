@@ -1,0 +1,12 @@
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {1.1}{\ignorespaces Data set matrices\relax }}{22}
+\contentsline {table}{\numberline {1.2}{\ignorespaces Estimated parameters\relax }}{27}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {2.1}{\ignorespaces Pin connection between Driver and Arduino\relax }}{40}
+\contentsline {table}{\numberline {2.2}{\ignorespaces Truth table in normal operating conditions\relax }}{41}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {3.1}{\ignorespaces Knobs original configuration\relax }}{52}
+\contentsline {table}{\numberline {3.2}{\ignorespaces Example of a sequence of points for custom refrence signal\relax }}{54}
+\contentsline {table}{\numberline {3.3}{\ignorespaces Serial word to be sent to Arduino\relax }}{57}
+\contentsline {table}{\numberline {3.4}{\ignorespaces Start commands\relax }}{57}
+\contentsline {table}{\numberline {3.5}{\ignorespaces Gain commands\relax }}{57}

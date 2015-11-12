@@ -1,0 +1,247 @@
+\documentclass[11pt, twoside]{report}
+
+\renewcommand{\figurename}{Fig.}
+
+% Page Layout
+\usepackage[inner=2.5cm,outer=2.5cm, top=2.5cm, bottom=2.5cm]{geometry}
+\usepackage[utf8]{inputenc}	% Accept Different encodings
+%\usepackage{subfigure}
+\usepackage[nottoc,notlof,notlot,notindex]{tocbibind} % Para incluir la bibliografía en el índice de forma automática
+\usepackage{fancyhdr}
+\usepackage{enumerate}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[labelfont=bf]{caption}
+\usepackage[framed,autolinebreaks,useliterate]{mcode}
+\usepackage{multirow}
+\usepackage{floatrow}
+
+\usepackage{color}
+\usepackage{listings} % To add code snipset
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{geometry}
+\usepackage{url}
+
+
+%%%%%%%%% MATLAB with Listings package %%%%%%%%%%%
+%%% usepackages: color,listings,caption,geometry
+%%%% Matlab-colors 
+\definecolor{mygreen}{RGB}{34,139,34}
+\definecolor{mylilas}{RGB}{160,32,240}
+\definecolor{mygrey}{RGB}{211,211,211}
+\definecolor{mybackgnd}{RGB}{252,252,220}
+%%%% Arduino-colors
+\definecolor{ard-orange}{RGB}{211,84,0}
+\definecolor{ard-blue}{RGB}{0,151,156}
+\definecolor{ard-grey}{RGB}{149,165,166}
+\definecolor{ard-dark-grey}{RGB}{67,79,84}
+\definecolor{ard-green}{RGB}{94,109,3}
+%%%% Python-colors
+\definecolor{py-blue-main}{RGB}{0,0,128}
+\definecolor{py-blue}{RGB}{0,0,255}
+\definecolor{py-green}{RGB}{0,128,0}
+\definecolor{py-grey}{RGB}{128,128,128}
+\definecolor{py-purple}{RGB}{148,85,141}
+
+%\renewcommand\lstlisting{\thechapter.\arabic{listing}}
+%\renewcommand\lstlistingname{Algorithm}
+
+\lstdefinestyle{My_MATLAB}{
+	language = Matlab,
+  	basicstyle=\footnotesize\ttfamily,
+  	backgroundcolor=\color{mybackgnd},
+  	deletekeywords={set, figure, plot, title, end, load},
+  	tabsize=2,
+  	extendedchars=true, 
+    breaklines=true,
+    keywordstyle=\color{blue},
+    identifierstyle=\color{black},
+    stringstyle=\color{mylilas},
+    commentstyle=\color{mygreen},
+    showstringspaces=false,
+    captionpos=t,
+    mathescape=true,
+    numbers=none,
+    showspaces=false,
+  	showtabs=false,
+    numbersep=9pt, 
+    keepspaces=true,
+    frame=tb,% top bottom
+    xleftmargin=17pt,
+  	framexleftmargin=17pt,
+  	framexrightmargin=17pt,
+  	framexbottommargin=5pt,
+  	framextopmargin=5pt
+}
+
+\lstdefinestyle{My_Arduino}{
+	language = C++,
+  	basicstyle=\footnotesize\ttfamily,
+  	%backgroundcolor=\color{mybackgnd},
+  	keywordstyle=\color{ard-green},
+  	deletekeywords={float, unsigned, char, int, true, false},
+  	keywordstyle=[2]\color{ard-orange},
+  	keywordstyle=[3]\bfseries\color{ard-blue},
+  	otherkeywords={},
+  	tabsize=2,
+  	extendedchars=true, 
+    breaklines=true,
+    identifierstyle=\color{black},
+    stringstyle=\color{ard-blue},
+    commentstyle=\color{ard-grey},
+    showstringspaces=false,
+    captionpos=t,
+    mathescape=true,
+    numbers=none,
+    showspaces=false,
+  	showtabs=false,
+    numbersep=9pt, 
+    keepspaces=true,
+    frame=tb,% top bottom
+    xleftmargin=17pt,
+  	framexleftmargin=17pt,
+  	framexrightmargin=17pt,
+  	framexbottommargin=5pt,
+  	framextopmargin=5pt,
+  	keywords=[2]{Serial, digitalWrite, digitalRead, pinMode, begin, 
+  		available, print, println, read, write},
+ 	keywords=[3]{uint32_t, HIGH, LOW, void, OUTPUT, INPUT,
+  		unsigned, uint8_t, boolean, long, double, float, char, define},
+}
+
+\lstdefinestyle{My_Python}{
+	language = Python,
+  	basicstyle=\footnotesize\ttfamily,
+  	keywordstyle=\color{py-blue-main},
+  	keywordstyle=[2]\color{py-purple},
+  	tabsize=2,
+  	extendedchars=true, 
+    breaklines=true,
+    identifierstyle=\color{black},
+    stringstyle=\color{py-green},
+    commentstyle=\color{py-grey},
+    showstringspaces=false,
+    captionpos=t,
+    mathescape=true,
+    numbers=none,
+    showspaces=false,
+  	showtabs=false,
+    numbersep=9pt, 
+    keepspaces=true,
+    frame=tb,% top bottom
+    xleftmargin=17pt,
+  	framexleftmargin=17pt,
+  	framexrightmargin=17pt,
+  	framexbottommargin=5pt,
+  	framextopmargin=5pt,
+  	keywords=[2]{self},
+  	%keywords=[3]{for, if, while, return, case, switch}
+}
+
+\DeclareCaptionFormat{listing}{\rule{\dimexpr\textwidth+17pt\relax}{0.4pt}\par\vskip1pt#1#2#3}
+\captionsetup[lstlisting]{format=listing,singlelinecheck=false, margin=0pt, font={sf},labelsep=space,labelfont=bf}
+
+%\renewcommand\lstlistingname{Listing} % Change the name if you want
+%
+%\lstnewenvironment{matlab-code}[1][]{\lstset{#1}}{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%\definecolor{lst_color}{RGB}{128,128,128}
+%\DeclareCaptionFont{white}{\color{white}}
+%\DeclareCaptionFormat{listing}{\colorbox{lst_color}{\parbox{\textwidth}{#1#2#3}}}
+%\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+%\captionsetup[listing]{format=listing,labelfont=white,textfont=white}
+%%\usepackage{tcolorbox}
+%\usepackage{xr}	% To add ref from different files
+%\usepackage{minted}
+%\newminted{python}{frame=lines,framerule=2pt}
+%\floatsetup[listing]{style=Plaintop}
+%
+%\newenvironment{code}{\captionsetup{type=listing}}{}
+%\usepackage{color}
+
+% --- in order minted caption to follow the numbering -------
+%\renewcommand\thelisting{\thechapter.\arabic{listing}}
+% -----------------------------------------------------------
+\definecolor{bg}{rgb}{0.95,0.95,0.95}
+
+
+\graphicspath{ {/home/esaii/Dropbox/UPC/Walking_Robot/Motors_report_LaTeX/Images/} }
+\renewcommand\bibname{References}
+
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%
+% Page Layout
+%%%%%%%%%%%%%%%%%%%
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LO,RE]{\thepage}
+\fancyfoot[LE,RO]{\includegraphics[width=50mm]{UPC1.png}}
+\renewcommand{\headrulewidth}{0.4pt}
+
+
+\newpage
+\thispagestyle{fancy} \cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                   INDEX                      %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tableofcontents
+\cleardoublepage
+%\listoffigures
+%\listoftables
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setcounter{page}{1}
+\addtolength{\parskip}{12pt} % Para que al hacer un enter separe párrafos 12pt.
+
+\thispagestyle{empty}
+\listoffigures
+\listoftables
+\lstlistoflistings
+
+
+%%%%%%%%%%%%%%%%% CHAPTER 1 %%%%%%%%%%%%%%%%%
+\chapter{Mathematical Modeling and Control}
+\input{Motor_modeling.tex}
+\newpage
+\input{ident_transfer_function.tex}
+\newpage
+\input{ident_ss1.tex}
+\newpage
+\input{Control.tex}
+
+%%%%%%%%%%%%%%%%% CHAPTER 2 %%%%%%%%%%%%%%%%%
+\chapter{Implementation}
+\newpage
+\input{AS5145.tex}
+\newpage
+\input{Driver.tex}
+\newpage
+\input{Arduino.tex}
+\newpage
+\input{pcb.tex}
+\newpage
+
+
+
+
+
+%%%%%%%%%%%%%%%%% CHAPTER 3 %%%%%%%%%%%%%%%%%
+\chapter{GUI}
+\newpage
+\input{GUI.tex}
+%\newpage
+%\input{Example.tex}
+
+%\bibliographystyle{plain}
+%\bibliography{report_ref}	
+
+%\appendix
+%\input{code_data_collect}
+%\input{code_GUI}
+
+\end{document}
+

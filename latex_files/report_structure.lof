@@ -1,0 +1,36 @@
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {1.1}{\ignorespaces Schematic representation of actuator-gear-load assembly for one joint.\relax }}{7}
+\contentsline {figure}{\numberline {1.2}{\ignorespaces Schematic diagram for electrical drive system\relax }}{8}
+\contentsline {figure}{\numberline {1.3}{\ignorespaces Schematic of gear ratio\relax }}{10}
+\contentsline {figure}{\numberline {1.4}{\ignorespaces DC motor electrical diagram\relax }}{11}
+\contentsline {figure}{\numberline {1.5}{\ignorespaces The setup of the experiment\relax }}{15}
+\contentsline {figure}{\numberline {1.6}{\ignorespaces Input-Output Data set\relax }}{16}
+\contentsline {figure}{\numberline {1.7}{\ignorespaces The data set seprated\relax }}{17}
+\contentsline {figure}{\numberline {1.8}{\ignorespaces Empirical step response\relax }}{18}
+\contentsline {figure}{\numberline {1.9}{\ignorespaces Validation Data fit to the transfer function\relax }}{19}
+\contentsline {figure}{\numberline {1.10}{\ignorespaces Estimation process\relax }}{19}
+\contentsline {figure}{\numberline {1.11}{\ignorespaces Simulink mode to validate the estimated transfer function\relax }}{20}
+\contentsline {figure}{\numberline {1.12}{\ignorespaces Validation of estimated transfer function\relax }}{20}
+\contentsline {figure}{\numberline {1.13}{\ignorespaces Mathematical model of the motor\relax }}{21}
+\contentsline {figure}{\numberline {1.14}{\ignorespaces Simulation vs. Measured Responses\relax }}{26}
+\contentsline {figure}{\numberline {1.15}{\ignorespaces Trajectories of Estimated Parameters\relax }}{27}
+\contentsline {figure}{\numberline {1.16}{\ignorespaces Validation model\relax }}{28}
+\contentsline {figure}{\numberline {1.17}{\ignorespaces Validation of the estimated parameters\relax }}{28}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {2.1}{\ignorespaces Schematic of AS5145\relax }}{33}
+\contentsline {figure}{\numberline {2.2}{\ignorespaces SSI Interface\relax }}{34}
+\contentsline {figure}{\numberline {2.3}{\ignorespaces Typical magnet (6x3) and Magnetic Field Distribution\relax }}{36}
+\contentsline {figure}{\numberline {2.4}{\ignorespaces Defined Chip Center and Magnet Displacement Radius\relax }}{37}
+\contentsline {figure}{\numberline {2.5}{\ignorespaces Schematic of the VNH5180A-E\relax }}{40}
+\contentsline {figure}{\numberline {2.6}{\ignorespaces Schematic of the main board\relax }}{45}
+\contentsline {figure}{\numberline {2.7}{\ignorespaces The original and modified servo motor\relax }}{46}
+\contentsline {figure}{\numberline {2.8}{\ignorespaces Top side of the main board\relax }}{47}
+\contentsline {figure}{\numberline {2.9}{\ignorespaces The sensor board\relax }}{48}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Main Window\relax }}{51}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces knob(P) configuration through \textit {mid} value\relax }}{52}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces knob(P) configuration window\relax }}{53}
+\contentsline {figure}{\numberline {3.4}{\ignorespaces New Reference Signal Main Window\relax }}{53}
+\contentsline {figure}{\numberline {3.5}{\ignorespaces The signal results from the point of Table 3.2\hbox {}\relax }}{54}
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Main window for creating a Periodic Reference Signal\relax }}{55}
+\contentsline {figure}{\numberline {3.7}{\ignorespaces The signal created on Fig. 3.6\hbox {} plotted in the main figure.\relax }}{56}

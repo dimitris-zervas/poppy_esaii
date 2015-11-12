@@ -1,0 +1,133 @@
+
+
+
+\section{Motor Control Board}
+
+A board that is hosting all the components described in this chapter was designed. The design of the \textbf{P}rinted \textbf{C}ircuit \textbf{B}oard was done using the \textit{Eagle} software. The goal of this design was to replace the one that already exist in a commercial DC servo motor. Fig \ref{Fig:original_servo} shows the servo motor with its initial board and the two boards (old an new) next to each other.
+
+Some of the advantages, compared to the old board, of this implementation are
+
+\begin{itemize}
+	\item Higher accuracy. Before the position was sensed with a potentiometer while now with the magnetic encoder it has accuracy of 0.088 degrees.
+	\item Wide range of applications. The new driver can deliver up to 9A which suggest that can be used for a large variety of DC servo motors.
+	\item Current sensing through the driver chip.
+	\item Fully programmable microcontroller.
+	\item I2C communication allowing up to 400 kHz \textit{Data Transfer Speed} and the option to connect up to 128 motors to the bus.
+\end{itemize}
+
+
+
+\subsection{Main Board}
+
+The main board is the one that host the \textit{Driver} and the \textit{Arduino}. Fig \ref{Fig:main_board_sch} shows the schematic of the system.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale = 0.25]{/pcb/main_board_sch.png}
+	\caption{Schematic of the main board}
+	\label{Fig:main_board_sch}
+\end{figure} 
+
+
+
+\begin{figure}[H]
+    \centering
+    
+    \begin{subfigure}[t]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{/phone/hitec.jpg}
+        \caption{The DC servo motor}
+        \label{Fig:magnet_placement}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[t]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{/phone/hitec_board.jpg}
+        \caption{The original board}
+        \label{Fig:hitec_board}
+    \end{subfigure}
+    
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{/phone/hitec-empty.jpg}
+        \caption{The board removed}
+        \label{Fig:hitec_empty}
+    \end{subfigure}
+	~
+	\begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{/phone/hitec-vs-me.jpg}
+        \caption{Old and new board}
+        \label{Fig:hitec_vs_me}
+    \end{subfigure}    
+    
+    \caption{The original and modified servo motor}\label{Fig:experimet_setup}
+    \label{Fig:original_servo}
+\end{figure}
+
+\newpage
+
+It also contains a mosfet that acts as protection from reverse connection of the power supply or battery. Fig. \ref{Fig:main_board_brd} shows the \textit{top} side of the designed board.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.3]{/pcb/main_board_brd.png}
+	\caption{Top side of the main board}
+	\label{Fig:main_board_brd}
+\end{figure} 
+
+The board, has on its left the three power supply pins, namely \textit{VCC}, \textit{5V} and \textit{GND}. The board does not contain a voltage regulator to supply the microcontroller and the sensor. 5 volts must be supplied externally. Around the place of the microcontroller (on the right of the top side of the board), there are the pins that the \textit{sensor board} will be attached.
+
+
+
+
+\subsection{Sensor Board}
+
+The sensor was designed on a second board for two reasons. First, because of lack of space on the main board and second, in order for the sensor to be placed closer to the magnet. Fig. \ref{Fig:sensor_sch_brd} shows the schematic and he top side of the \textit{sensor board}. On the right of the \textit{top side} there are the pins for the ICSP cables. Among them, there is also a 5V pin. When the user wants to upload a \textit{sketch} to the Arduino, he must \textbf{take care} to not supply both the boards (main and sensor) with 5V as the 5V pin of the \textit{main board} is the same 5V pin on the \textit{sensor board}.
+
+On the left side of the \textit{sensor board} there are the two pins for the I2C communication. \textbf{Note!} There are no pull-up resistors for the I2C pins on either of the two boards.
+
+
+
+\begin{figure}[H]
+    
+    \begin{subfigure}[t]{\textwidth}
+    \centering
+        \includegraphics[width=\textwidth]{/pcb/sensor_board_sch.png}
+        \caption{Sensor board schematic}
+        \label{Fig:sensor_sch}
+    \end{subfigure}
+    
+    \begin{subfigure}[h]{\textwidth}
+    	\centering
+        \includegraphics[scale=0.2]{/pcb/sensor_board_brd.png}
+        \caption{Top side of the sensor board}
+        \label{Fig:sensor_brd}
+    \end{subfigure}
+        
+    \caption{The sensor board}
+    \label{Fig:sensor board}
+\end{figure}
+
+\newpage
+
+
+As noted in Section \ref{sec:Magnetic Encoder} 
+
+``A properly aligned magnet will therefore produce a $MagINC=MagDEC=1$ signal throughout a full $360\deg$ turn of the magnet.''
+
+The \textit{sensor board} provides also these two pins, namely \textit{MagINC} and \textit{MagDEC} in order for the user to check if the magnet is properly aligned.
+
+
+
+
+
+
+\subsection{Summary}
+
+On this chapter, was presented a short description of each of the "tools" that are needed to successfully control a motor. In addition to that, the necessary code to use each one of them was provided. Finally, the schematic and board files were shown. The final outcome results in a board with 11 cables coming out of it. These are
+
+\begin{itemize}
+	\item 3 for the power supply (VCC, 5V, GND)
+	\item 2 for the I2C (SDA, SCL)
+	\item 6 for the ICSP (5V, GND, MISO, MOSI, SCK, RST)
+\end{itemize}
+
+It is worth reminding here that the \textit{5V} and \textit{GND} pins from power supply and ICSP are interconnected with each other through the board. Also, if the user does not want to upload any new program and just want to interact with the motor through I2C, the 6 cables of the ICSP are not needed any more. Finally, he can connect the I2C cables either on the main board or on the sensor board, at his convenience.

@@ -1,0 +1,78 @@
+
+\section{Control}
+
+PID controllers have survived many changes in technology, from mechanics and pneumatics to microprocessors via electronic tubes, transistors, integrated circuits. The microprocessors has had a dramatic influence on the PID controller. Practically all PID controllers made today are based on microprocessors. This has given opportunities to provide additional features like automatic tuning, gain scheduling, and continuous adaptation.
+
+\subsection{The Algorithm}
+
+The basic algorithm will be summarised here as it is described in \cite{Dorf} and \cite{Astrom}.
+
+The "textbook" version of the PID algorithm is described by:
+
+\begin{equation}
+	u(t) = K \left(e(t) + \frac{1}{T_i} \int_{0}^{t} e(\tau) d\tau + T_d \frac{d e(t)}{dt} \right)
+	\label{Eq:pid_simple}
+\end{equation}
+
+\noindent where $y$ is the measured process variable, $r$ the reference variable, $u$ is the control signal and $e$ is the control error $(e = y_{sp}-y)$. The control signal is thus thus a sum of three terms: the P-term (which is proportional to the error), the I-term (which is proportional to the integral of the error), and the D-term (which is proportional to the derivative of the error). The controller parameters are proportional gain $K$, integral time $T_i$, and derivative time $T_d$.
+
+The transfer function of a PID controller in the s-domain is expressed as:
+
+\begin{equation}
+	\frac{U(s)}{X(s)} = G_c(s) = K_P + \frac{K_I}{s} + K_D s
+	\label{Eq:pid_s-domain}
+\end{equation}
+
+A digital implementation of this controller can be determined by using a \textit{\textbf{discrete approximation}} for the \textit{derivative} and \textit{integration}.
+
+\subsubsection{Numerical Differentiation}
+
+One of the simplest implementation of time derivative, is with the use of the \textbf{backward difference rule}
+
+\begin{equation}
+	u(k) = \frac{1}{T} \left(x(k) - x(k-1)T \right)
+	\label{Eq:Backward difference}
+\end{equation}
+
+\noindent The z-transform of Equation \ref{Eq:Backward difference} is
+
+\begin{equation}
+	U(z) = \frac{1-z^{-1}}{T} X(z) = \frac{z-1}{Tz} X(z)
+	\label{Eq:z-Backward difference}
+\end{equation}
+
+
+\subsubsection{Numerical Integration}
+
+The integration of $x(t)$ can be represented by the \textbf{forward-rectangular integration}
+
+\begin{equation}
+	u(k) = u(k-1)T + Tx(k)
+	\label{Eq:forward-rectangular integration}
+\end{equation}
+
+\noindent The z-transform of Equation \ref{Eq:forward-rectangular integration} is
+
+\begin{equation}
+	U(z) = z^{-1} U(z) + T X(z) \Leftrightarrow \frac{U(z)}{X(z)} = \frac{Tz}{z-1}
+	\label{Eq:z-forward-rectangular integration}
+\end{equation}
+
+
+\subsubsection{PID Algorithm Implementation}
+
+Putting all together, the z-domain transfer function of the \textbf{PID controller} is
+
+\begin{equation}
+	G_c(z) = K_P + \frac{K_I T z}{z-1} + K_D \frac{z-1}{Tz}
+	\label{Eq:PID_z}
+\end{equation}
+
+The complete difference equation algorithm that provides the PID controller is obtained by adding the three terms to obtain
+
+\begin{equation}
+	u(k) = \boldsymbol{K_P} x(k) + \boldsymbol{K_I} \left[ u(k-1) + T x(k) \right] + \left(\frac{\boldsymbol{K_D}}{T} \left[ x(k) - x(k-1) \right]\right)
+	\label{Eq:PID}
+\end{equation}
+
+\noindent Equation \ref{Eq:PID} can be easily implemented in a microcontroller using the tools provided in this report. Of course, someone can obtain a \textit{PI} or \textit{PD} controller by setting the appropriate gain equal to zero.

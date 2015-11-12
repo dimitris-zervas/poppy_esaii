@@ -1,0 +1,229 @@
+
+
+
+
+\section{System Identification}\label{Sec:system_identification}
+	
+System Identification Toolbox provides MATLAB functions, Simulink blocks, and an app for constructing mathematical models of dynamic systems from measured input-output data. It lets you create and use models of dynamic systems not easily modeled from first principles or specifications.
+
+The toolbox provides identification techniques such as maximum likelihood, prediction-error minimization (PEM), and subspace system identification. To represent nonlinear system dynamics, you can estimate Hammerstein-Weiner models and nonlinear ARX models with wavelet network, tree-partition, and sigmoid network nonlinearities. The toolbox performs grey-box system identification for estimating parameters of a user-defined model. You can use the identified model for system response prediction and plant modeling in Simulink. The toolbox also supports time-series data modeling and time-series forecasting.
+
+
+\subsection{Data acquisition}\label{sub:data_acquisition}
+
+The most important thing in any system identification is the data someone has in order to use them in the estimation and validation process. In order to collect this data, various experiments were conducted. The input of the system (Voltage) as well as the output (Position) were measured. To help the process of collecting data, codes providing communication between MATLAB and Arduino are provided. 
+
+The setup is simple. Arduino and MATLAB are communicating through the \textit{Serial} interface. The sensor used to measure the \textit{position} is the \textit{AS5145}. Its functionality is described with details in Section \ref{sec:Magnetic Encoder}. In short, it is a magnetic encoder that senses the rotation of a bipolar magnet on top of it. The magnet is attached on the shaft on the outer part of the servo motor as shown in Fig. \ref{Fig:magnet_placement}. The sensor is positioned in a close distance to the magnet in a kind of random alignment as shown in Fig. \ref{Fig:magnet+sensor}. That way it is able to test also the misalignment limits of the sensor (Section \ref{Sec:alignment_mode}). The motor is driven using the \textit{VNH5180A-E} full bridge, Fig. \ref{Fig:driver_populated}. The use of the driver is described in Section \ref{sec:Driver}. "\textit{Dummy}" boards for both the driver and the sensor were designed in order to connect them easily with the Arduino board. In Fig. \ref{Fig:experimet_setup} the whole setup is presented. The input of the system, the applied voltage, is calculated from the applied \textit{PWM} signal.
+
+
+\begin{figure}[h!]
+    \centering
+    
+    \begin{subfigure}[h]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{/phone/magnet_placement.png}
+        \caption{Driver test board}
+        \label{Fig:magnet_placement}
+    \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc. 
+      %(or a blank line to force the subfigure onto a new line)
+    \begin{subfigure}[h]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{/phone/driver_populated.png}
+        \caption{Driver test board, populated}
+        \label{Fig:driver_populated}
+    \end{subfigure}
+    
+    \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{/phone/sensor_board.png}
+        \caption{Sensor test board}
+        \label{Fig:sensor_board}
+    \end{subfigure}
+	~
+	\begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[height=5cm, width=5cm]{/phone/experiment_setup.png}
+        \caption{Sensor test board}
+        \label{Fig:magnet+sensor}
+    \end{subfigure}    
+    
+    \caption{The setup of the experiment}\label{Fig:experimet_setup}
+\end{figure}
+
+
+
+The Arduino code as well as the MATLAB code are provided with this report. The "concept" of the implementation is briefly explained. 
+
+The "Arduino side", is receiving the desired input (\textit{PWM duty cycle} and \textit{direction}), it applies it to the system, measures the current position and sends it back to the "MATLAB side". The communication is initiated every time from Arduino, as in a microcontroller environment it is possible to achieve accurate fixed sampling time. The way to achieve this accurate timing is described in Section \ref{sec:Control Loop}.
+
+The "MATLAB	side" is firstly loading a Simulink file, in which the user can create its own input signals. Then translates the desired signal (in every sampling time) to two bytes namely, the \textit{PWM duty cycle} and the \textit{direction} byte. Afterwards it open the Serial port and waits for "Arduino side" to initiate the communication.
+
+
+
+
+The files that are needed to conduct someone an experiment are:
+
+\begin{itemize}
+	\item collect\_data.m
+	\item collect\_data\_buffer.m
+	\item simuling\_signal\_generator.slx
+	\item plot\_data.m
+	\item collect\_data\_v1\_0.ino
+\end{itemize} 
+
+The user must first upload the \textit{collect\_data\_v1\_0.ino} file to the Arduino board and then (assuming signals were created in the \textit{simuling\_signal\_generator.slx}) run the \textit{collect\_data.m} file in MATLAB. After the end of the experiment he can run the \textit{plot\_data.m} to observe the results. The communication is not optimised as it was made only to serve for collecting data. After every experiment, the Arduino needs to be restarted and before re-run the \textit{collect\_data.m} file the user must "\textit{clear all}" the MATLAB variables.
+
+
+\subsection{Data preparation}\label{sub:data_preperation}
+
+A set of data is also provided with this report, even though someone can perform its own experiments, as described in Section \ref{sub:data_acquisition}. The experiments for the provided data were conducted at $7.4V$ and \textit{sampling time} at $20ms$.
+
+There were used three different input signals in order to test different -realistic- dynamics. Fig. \ref{Fig:data_set} shows the three input/output data sets.
+
+\begin{figure}[h!]
+	\includegraphics[scale=0.8]{Estimation/data_Set.eps}
+	\caption{Input-Output Data set}
+	\label{Fig:data_set}
+\end{figure}
+
+
+
+The first data set was selected in order to estimate the transfer function. The data are in the \textit{collect\_data2.mat} file,
+
+\begin{lstlisting}[style=My_MATLAB, caption= Load the data]
+% Load the input/output data
+load('estimation_data');
+\end{lstlisting}
+
+
+
+\noindent which contains the \textit{input1} and \textit{out\_rel\_deg} matrices.
+
+
+The System Identification Toolbox data object iddata, encapsulate data values and data properties into a single entity. The System Identification Toolbox commands can be used, to conveniently manipulate these data objects as single entities. One part of the data will be used for the estimation and the rest for validation.
+
+\begin{lstlisting}[style=My_MATLAB, caption=Creating iddata]
+%Create identification iddata
+ze = iddata(out_rel_deg(1:300,1),input1(1:300,1),Ts);
+%Properties of ident. data
+set(ze,'InputName','Input(volt)','OutputName','Output(deg)',...
+    'InputUnit','Volt','OutputUnit','degrees','TimeUnit','seconds');
+%Create validation iddata
+zv = iddata(out_rel_deg(301:end,1),input1(301:end,1),Ts);
+%Properties of validation data
+set(zv,'InputName','Input(volt)','OutputName','Output(deg)',...
+    'InputUnit','Volt','OutputUnit','degrees','TimeUnit','seconds');
+%Plot
+figure; plot(ze); title('Identification data');
+figure; plot(zv); title('Validation data');
+\end{lstlisting}
+
+\noindent And the resulting plots,
+
+\begin{figure}[h!]
+    \centering
+
+    \begin{subfigure}[h]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{/Estimation/Estimation_data.eps}
+        \caption{Estimation Data}
+        \label{Fig:estimation_data}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[h]{0.45\textwidth}
+        \includegraphics[width=\textwidth]{/Estimation/Validation_data.eps}
+        \caption{Validation Data}
+        \label{Fig:validation data}
+    \end{subfigure}
+    
+    
+    \caption{The data set seprated}\label{Fig:seperated_data}
+\end{figure}
+
+
+\subsection{Estimating the Empirical Step Response}
+
+Frequency-response and step-response are nonparametric models that can help someone understand the dynamic characteristics of the system. These models are not represented by a compact mathematical formula with adjustable parameters. Instead, they consist of data tables. To estimate the step response from the data, first estimate a non-parametric impulse response model (FIR filter) from data and then plot its step response.
+
+\begin{lstlisting}[style=My_MATLAB]
+%% Estimating the Empirical Step Response
+
+% model estimation
+Mimp = impulseest(ze);
+% empirical step response
+figure, step(Mimp);
+\end{lstlisting}
+
+\noindent As we can see from Fig. \ref{Fig:empirical_step} , the response of the model shows that it might be a first order system or an overdamped function.
+
+\begin{figure}[h!]
+	\includegraphics[scale=0.4]{/Estimation/empirical_step.eps}
+	\caption{Empirical step response}
+	\label{Fig:empirical_step}
+\end{figure}
+
+
+
+
+
+\subsection{Estimating Input/Output delays}
+
+To identify parametric black-box models, the input/output delay must be specified as part of the model order. If the input/output delays for the system are not known from the experiment, the System Identification Toolbox software can be used, to estimate the delay.
+
+\begin{lstlisting}[style=My_MATLAB, caption=Estimation of Input-Output delays]
+%Estimate delay
+estimated_delay = delayest(ze) %ans=1 -> 1*Ts = 20ms delay
+\end{lstlisting}
+
+\noindent As it was expected, the result is $1*Ts$ delay.
+
+
+\subsection{Estimate Transfer Function}
+
+At this point the data are prepared for the estimation of the transfer function. The only choice left, is the number of poles. For $np = 3$ the result is as shown in Fig. \ref{Fig:estimation_fit}.
+
+\begin{lstlisting}[style=My_MATLAB, caption=Transfer function estimation]
+%% ESTIMATE TRANSFER FUNCTION
+Opt = tfestOptions('Display', 'on');
+% # of poles
+np = 3;
+% delay
+ioDelay = estimated_delay*Ts;
+% Estimate the transfer function
+mtf = tfest(ze, np, [], ioDelay, Opt);
+figure, step(mtf);
+
+figure, compare(zv, mtf)
+\end{lstlisting}
+
+\noindent The estimated transfer function is,
+
+\begin{equation}
+	mtf = \frac{67.56 s^2 + 1893 s + 4.252 e^4}{s^3 + 27.94 s^2 + 231.4 s + 4.586 e^{-11}}
+\end{equation}
+
+
+\begin{figure}[h!]
+	\includegraphics[scale=0.55]{/Estimation/tf_fit.eps}
+    \caption{Validation Data fit to the transfer function}
+    \label{Fig:estimation_fit}    
+\end{figure}
+    
+\begin{figure}[h!]
+    \includegraphics[scale=0.35]{/Estimation/estimation.png}
+    \caption{Estimation process}
+	\label{Fig:estimation process}
+\end{figure}
+
+In Fig. \ref{Fig:estimation_fit} and \ref{Fig:estimation process} it is observed that the fit of the validation data reaches the $98.37\%$. The reason for this very good result is that the dynamics of the validation data are the same as the estimation data. In order to test the transfer function with different dynamics, a simple Simulink model was created, only this time, the second input data was selected as the input to the transfer function. Fig. \ref{Fig:simulink_test_tf} shows the model.
+
+
+\begin{figure}[h!]
+	\includegraphics[scale=0.35]{/Estimation/simulink_test_tf.png}
+    \caption{Simulink mode to validate the estimated transfer function}
+	\label{Fig:simulink_test_tf}
+\end{figure}
+
+In Fig. \ref{Fig:validation_tf} the comparison between the experiment's output and simulation's output is shown. The estimated transfer function it may not follow the dynamics as well as with the previous data set but the result is still good and suggests, that the estimated transfer function can be used for a controller design.
+
+\begin{figure}[h!]
+	\includegraphics[scale=0.8]{/Estimation/validation.eps}
+    \caption{Validation of estimated transfer function}
+	\label{Fig:validation_tf}
+\end{figure}

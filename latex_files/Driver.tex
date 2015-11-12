@@ -1,0 +1,89 @@
+
+\newpage
+
+\section{H-Bridge motor driver} \label{sec:Driver}
+
+To drive the motor, the \textit{\textbf{VNH5180A-E}} fully integrated H-bridge motor driver from STMicroelectronics, was selected \cite{Driver}. The two main reasons behind this choice, were the output current of 8 A, that covers the need of most of the hobby RC-servos in the market and, the integrated current sensor.
+
+\subsection{General Description}
+
+The \textit{VNH5180A-E} is a full bridge motor driver intended for a wide range of automotive applications. The device incorporates a dual monolithic high-side driver and two low-side switches. Both switches are designed using STMicroelectronics’ well known and proven proprietary $VIPower®$ M0 technology that allows to efficiently integrate on the same die a true Power MOSFET with an intelligent signal/protection circuitry. The three dies are assembled in PowerSSO-36 TP package on electrically isolated leadframes. This package, specifically designed for the harsh automotive environment offers improved thermal performance thanks to exposed die pads. Moreover, its fully symmetrical mechanical design allows superior manufacturability at board level. 
+
+The input signals IN\textunderscore A and IN\textunderscore B can directly interface to the microcontroller to select the motor direction and the brake condition. The DIAG\textunderscore A/EN\textunderscore A or DIAG\textunderscore B/EN\textunderscore B , when connected to an external pull-up resistor, enables one leg of the bridge. Each DIAG\textunderscore A/EN\textunderscore A provides a feedback digital diagnostic signal as well. The normal operating condition is explained in the truth Table \ref{Tab:truth table driver}. The CS pin allows to monitor the motor current by delivering a current proportional to its value when CS\textunderscore DIS pin is driven low or left open. When CS\textunderscore DIS is driven high, CS pin is in high impedance condition. The PWM, up to 20 KHz, allows to control the speed of the motor in all possible conditions. In all cases, a low level state on the PWM pin turns off both the LS\textunderscore A and LS\textunderscore B switches.
+
+\subsection{Key Features}
+
+\begin{itemize}
+	\item Output current: 8 A
+	\item 3 V CMOS compatible inputs
+	\item Undervoltage shutdown
+	\item Overvoltage clamp
+	\item Thermal shutdown
+	\item Cross-conduction protection
+	\item Current and power limitation
+	\item Very low standby power consumption
+	\item PWM operation up to 20 KHz
+	\item Protection against loss of ground and loss of $V_{CC}$
+	\item Current sense output proportional to motor current
+	\item Output protected against short to ground and short to $V_{CC}$
+\end{itemize}
+
+\subsection{Interfacing with Arduino} \label{subsec:driver-arduino}
+
+\begin{figure}[h!]
+	\begin{center}
+		\includegraphics[scale=0.3]{/Driver/schematic}
+		\caption{Schematic of the VNH5180A-E}
+		\label{Fig:schematic_driver}
+	\end{center}
+\end{figure}
+
+They key points in order to connect with Arduino are:
+
+\begin{itemize}
+	\item The pins \textit{SOURCE\_HSA/B} (high side mosfet's source) and \textit{DRAIN\_LSA/B} (low side mosfet's drain), must be connected to each other. Of course the junction between them is where the motor cables are also connected.
+	\item In normal operating conditions the \textit{EN/DIAG\_A} and \textit{EN/DIAG\_B} pins are considered as inputs by the device. They must be connected to an external pull up resistor. 
+\end{itemize}
+
+\noindent Apart of these points, the connection with the Arduino is straightforward.
+
+\begin{center}
+	\captionof{table}{Pin connection between Driver and Arduino} \label{Tab:pin_connection_driver}
+	\begin{tabular}{|c c c|}
+	\hline Driver & & \multicolumn{1}{c|}{Arduino}	\\
+	\hline IN\textunderscore A	&	$\leftrightarrow$ &	D4 \\
+	IN\textunderscore B			&	$\leftrightarrow$ &	D7 \\
+	IN\textunderscore PWM		&	$\leftrightarrow$ &	D3	\\ \hline	
+	\end{tabular}
+\end{center}
+
+\noindent where D4 and D7 are the digital pins we chose to control the direction of the motor. The possible combination of all the pins in \textit{normal operation} conditions are shown in Table \ref{Tab:truth table driver}
+
+\begin{center}
+	\captionof{table}{Truth table in normal operating conditions} \label{Tab:truth table driver}
+	\begin{tabular}{|c|c|c|c|c|c|p{5cm}|}
+	\hline 
+	$IN_A$ & $IN_B$ & $DIAG_A / EN_A$ & $DIAG_B / EN_B$ & $OUT_A$ & $OUT_B$ & \multicolumn{1}{c|}{Operating mode} \\	\hline
+	\multirow{2}{*}{1} & 1 & \multirow{4}{*}{1} & \multirow{4}{*}{1} & \multirow{2}{*}{H} & H & Brake to $V_{CC}$ \\	\cline{2-2} \cline{6-7}
+	& 0 & & & & L & Clockwise (CW) \\ \cline{1-2} \cline{5-7}
+	\multirow{2}{*}{0} & 1 & & & \multirow{2}{*}{L} & H & Counterclockwise (CCW) \\ \cline{2-2} \cline{6-7}
+	& 0 & & & & L & Brake to GND \\ \hline
+	
+	%\caption{Truth table in normal operating conditions}
+	\end{tabular}
+\end{center}
+
+
+\subsection{Run the motor}
+
+In order to run the motor all it needs to be done, is choose the direction (CW/CCW) and apply the PWM in the proper pin. An example code is show in Listing \ref{Arduino drive the motor}.
+
+\begin{lstlisting}[style=My_Arduino, label=Arduino drive the motor,caption=Arduino code to run the motor]
+// Make sure you don't hae cross - conduction (even though
+// chip has protection about it)
+digitalWrite(7,LOW);  digitalWrite(4,LOW);  //Brake
+digitalWrite(4,HIGH);
+OCR2B = 100;
+\end{lstlisting}
+
+\noindent where \textit{OCR2B,} is the 8-bit register of the timer is used to create the PWM signal at pin D3, as explained in Section \ref{arduino:setup}

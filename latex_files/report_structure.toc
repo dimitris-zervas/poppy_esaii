@@ -1,0 +1,57 @@
+\contentsline {chapter}{\numberline {1}Mathematical Modeling and Control}{6}
+\contentsline {section}{\numberline {1.1}Modelling and Control}{7}
+\contentsline {subsection}{\numberline {1.1.1}Introduction}{7}
+\contentsline {subsection}{\numberline {1.1.2}Mathematical Modelling of DC Motor}{7}
+\contentsline {subsection}{\numberline {1.1.3}Relation between $K_I$ and $K_b$}{13}
+\contentsline {section}{\numberline {1.2}System Identification}{14}
+\contentsline {subsection}{\numberline {1.2.1}Data acquisition}{14}
+\contentsline {subsection}{\numberline {1.2.2}Data preparation}{15}
+\contentsline {subsection}{\numberline {1.2.3}Estimating the Empirical Step Response}{17}
+\contentsline {subsection}{\numberline {1.2.4}Estimating Input/Output delays}{18}
+\contentsline {subsection}{\numberline {1.2.5}Estimate Transfer Function}{18}
+\contentsline {section}{\numberline {1.3}Parameter Estimation}{21}
+\contentsline {subsection}{\numberline {1.3.1}Simulink model}{21}
+\contentsline {subsection}{\numberline {1.3.2}MATLAB Parameter Estimation Toolbox}{22}
+\contentsline {subsection}{\numberline {1.3.3}Validation}{27}
+\contentsline {section}{\numberline {1.4}Control}{29}
+\contentsline {subsection}{\numberline {1.4.1}The Algorithm}{29}
+\contentsline {subsubsection}{Numerical Differentiation}{29}
+\contentsline {subsubsection}{Numerical Integration}{30}
+\contentsline {subsubsection}{PID Algorithm Implementation}{30}
+\contentsline {chapter}{\numberline {2}Implementation}{31}
+\contentsline {section}{\numberline {2.1}Magnetic Encoder}{32}
+\contentsline {subsection}{\numberline {2.1.1}General Description}{32}
+\contentsline {subsection}{\numberline {2.1.2}Key Features}{32}
+\contentsline {subsection}{\numberline {2.1.3}Interfacing with Arduino}{33}
+\contentsline {subsection}{\numberline {2.1.4}Synchronous Serial Interface (SSI)}{34}
+\contentsline {subsection}{\numberline {2.1.5}Data Content}{34}
+\contentsline {subsection}{\numberline {2.1.6}Read the position}{35}
+\contentsline {subsection}{\numberline {2.1.7}Selecting Proper Magnet}{36}
+\contentsline {subsection}{\numberline {2.1.8}Physical Placement of the Magnet}{37}
+\contentsline {subsection}{\numberline {2.1.9}Alignment Mode}{37}
+\contentsline {section}{\numberline {2.2}H-Bridge motor driver}{39}
+\contentsline {subsection}{\numberline {2.2.1}General Description}{39}
+\contentsline {subsection}{\numberline {2.2.2}Key Features}{39}
+\contentsline {subsection}{\numberline {2.2.3}Interfacing with Arduino}{40}
+\contentsline {subsection}{\numberline {2.2.4}Run the motor}{41}
+\contentsline {section}{\numberline {2.3}ATmega328 microcontroller - Arduino}{42}
+\contentsline {subsection}{\numberline {2.3.1}Peripheral Features}{42}
+\contentsline {subsection}{\numberline {2.3.2}Setup}{42}
+\contentsline {subsubsection}{Timer 0 for Control Loop}{43}
+\contentsline {subsubsection}{Timer 2 for PWM generation}{44}
+\contentsline {section}{\numberline {2.4}Motor Control Board}{45}
+\contentsline {subsection}{\numberline {2.4.1}Main Board}{45}
+\contentsline {subsection}{\numberline {2.4.2}Sensor Board}{47}
+\contentsline {subsection}{\numberline {2.4.3}Summary}{49}
+\contentsline {chapter}{\numberline {3}GUI}{50}
+\contentsline {section}{\numberline {3.1}Introducing the GUI}{51}
+\contentsline {subsection}{\numberline {3.1.1}Knobs section}{52}
+\contentsline {subsection}{\numberline {3.1.2}Creating Reference Signals}{53}
+\contentsline {subsubsection}{New Reference signal}{53}
+\contentsline {subsubsection}{New Periodic Reference Signal}{55}
+\contentsline {subsection}{\numberline {3.1.3}Configuration section}{56}
+\contentsline {section}{\numberline {3.2}Communication}{56}
+\contentsline {subsection}{\numberline {3.2.1}Python side}{57}
+\contentsline {subsection}{\numberline {3.2.2}Arduino side}{59}
+\contentsline {subsubsection}{Manual Serial}{60}
+\contentsline {subsubsection}{Control Loop}{61}

@@ -1,0 +1,118 @@
+
+
+
+
+
+
+\section{ATmega328 microcontroller - Arduino} \label{arduino:intro}
+
+For this application we chose the \textit{Atmel} microcontroller \textit{ATmega328P-AU}, which is also used to \textit{Arduino UNO} boards \cite{Arduino}. That way the user can take advantage of all the functionalities of Arduino, such as the IDE and the libraries. The only difference with an Arduino board is that the code is uploaded through ISP instead of USB.
+
+\subsection{Peripheral Features} \label{arduino:features}
+
+Some of the peripheral features of the micro-controller are,
+
+\begin{itemize}
+	\item Two 8-bit Timer/Counters with Separate Prescaler and Compare Mode
+	\item One 16-bit Timer/Counters with Separate Prescaler, Compare Mode and Capture Mode
+	\item Real Time Counter with Separate Oscillator
+	\item Six PWM Channels
+	\item 8-channel 10-bit ADC in TQPF and QFN/MLF package Temperature Measurement
+	\item 6-channel 10-bit ADC in PDIP package Temperature Measurement
+	\item Programmable Serial USART
+	\item Master/Slave SPI Serial Interface
+	\item Byte-oriented 2-wire Serial Interface (Philips $I^2C$ compatible)
+\end{itemize}
+
+\subsection{Setup} \label{arduino:setup}
+
+The system clock is at 16Mhz. The connection with the sensor and the driver is already described in subsections \ref{subsec:sensor-arduino} and \ref{subsec:driver-arduino} respectively.
+
+Arduino IDE, is using a main loop which is repeating every time as soon as the code inside it is executed. For any typical digital control system, there is the need of a fixed sampling time. In order to achieve that, \textit{Timer0} was used, to trigger an interrupt in the desired sampling time. This time will be referred as \textit{\textbf{control loop}} from now on.
+
+
+\noindent \textbf{Note!} \quad	The use of \textit{Timer0} interrupt interferes with the arduino library that uses the \textit{\textbf{delay()}} function. If the interrupt routine is used the user shouldn't use the \textit{delay()} function any more. Even though the compiler will not find any error, the accuracy of the timing of the \textit{delay()} command is lost.
+
+\subsubsection{Timer 0 for Control Loop} \label{sec:Control Loop}
+
+Timer0 is used in the \textit{"Clear Timer on Compare Match"} or \textbf{CTC} mode. The timer has an 8-bit register called \textit{OCR0A}. It also has a counter, \textit{TCNT0} that, if the timer is active, it increases its value every timer-clock cycle. Whenever $OCR0A = TCNT0$ the counter goes to 0 again (on the same clock) and an interrupt is triggered.
+
+The timer-clock can be configured from the \textit{TCCR0B} register. The configuration of these registers give the user the choice to choose the control loop frequency.
+
+\noindent Listing \ref{Timer0 setup}, shows the configuration of \textit{Timer0} for this application,
+
+
+\begin{lstlisting}[style=My_Arduino, label = Timer0 setup, caption = Setup of Timer0 registers]
+TCCR0A = 0;
+TCCR0B = 0;
+  
+TCCR0A |= B01000010;
+TCCR0B |= B00000101;
+// to be able to use the interrupt
+TIMSK0 |= B00000010;
+loop_flag = 1;
+  
+OCR0A = 78;  //with CS00:2 = 101 -> period = 0.01
+// Enable global interrupts
+sei();
+\end{lstlisting}
+
+\noindent The interrupt routine must be as fast as possible. All it does is to raise a boolean flag. In the control loop, after the execution of the code, this flag is turned back to LOW.
+
+
+\begin{lstlisting}[style=My_Arduino, label = Timer0 Interrupt, caption = Timer0 interrupt routine.]
+/* Counter0 compare match interrupt - for control loop*/
+ISR(TIMER0_COMPA_vect) {
+  if (loop_flag == 0){
+    loop_flag = 1;
+  }
+}
+\end{lstlisting}
+
+
+\noindent And an example of a control loop,
+
+
+\begin{lstlisting}[style=My_Arduino, label = Control loop, caption = Example of control loop]
+void loop() {
+  // loop_flag was set 1 in setup
+  if (loop_flag == 1) {
+    
+    /* Your code here */
+    
+    loop_flag = 0;
+  }
+  
+}
+\end{lstlisting}
+
+
+After the execution of "\textit{Your code}", the microcontroller will stay in the \textit{loop()} doing nothing, until the \textit{loop\_flag} will be raised again from the interrupt routine, which happens in a fixed -sampling- time. For that reason "\textit{Your code}" must be executed before the end of the \textit{control loop}. If the user wants to check if the code exceeds this time, he can use an \textit{else} statement in the interrupt routine.
+
+\subsubsection{Timer 2 for PWM generation}
+
+Apart of the use of \textit{Timer0} for the control loop, \textit{Timer2} is also used to generate the PWM signal that will be used to drive the motor.
+
+Timer2 is used in the \textit{"Fast PWM"} mode. This mode provides a high-frequency PWM waveform and the reason for that is its single-slope operation. The counter counts from BOTTOM to TOP and then restarts from BOTTOM. BOTOM is equal to 0 while TOP can be configured from the timer registers. This high frequency makes the fast PWM mode well suited for power regulation, rectification, and DAC applications. High frequency allows physically small sized external components (coils, capacitors), and therefore reduces total system cost.
+
+Every time the timer overflows it toggles the state of OCOB which is the \textit{Digital Pin 3}. Listing \ref{PWM setup}, shows the setup of the timer,
+
+
+\begin{lstlisting}[style=My_Arduino, label = PWM setup, caption = Timer2 setup for Fast PWM]
+/* ---------- Timer 2 - Configuration (FAST_PWM) ------------ */
+  TCCR2A = 0;
+  TCCR2B = 0;    
+  TCCR2A |= B00100011;
+  TCCR2B |= B00000111;
+/* -----------------------------------------------------------*/
+\end{lstlisting}
+
+
+The value of the 8-bit register \textit{\textbf{OC2B}} corresponds to the PWM duty cycle. So if a PWM signal, with $50\%$ duty cycle is required, someone could use the command of Listing \ref{PWM duty}.
+
+
+\begin{lstlisting}[style=My_Arduino, label = PWM duty, caption = Setup of PWM duty-cycle]
+OCR2B = 128;
+\end{lstlisting}
+
+\noindent By setting the \textit{OCR2B} register the PWM signal generation starts.

@@ -1,0 +1,169 @@
+\newcommand{\minus}{\scalebox{0.75}[1.0]{$-$}}
+
+
+\section{Parameter Estimation}
+	
+As it was shown in Section \ref{Sec:system_identification} it was possible to someone estimate a transfer function considering the system as a black box. If the mathematical model of the system is known, it is possible to estimate the parameters of the model, using again input-output data. On this section, this process will be described.
+
+
+\subsection{Simulink model}
+
+The mathematical model that was derived in Section \ref{sub:modeling} is going to be used. The implementation of this model in Simulink is pretty straightforward,
+
+\begin{figure}[h!]
+	\includegraphics[scale=0.35]{simulink_my_model}
+	\caption{Mathematical model of the motor}
+	\label{Fig:model_ss}
+\end{figure}
+
+The parameters of the system that we want to estimate are:
+
+\begin{tabular}{l l}
+	$B$ 		& effective damping coefficient, $N \minus m \ s/rad$,\\
+	$J$ 		& effective inertia, $N \minus m \ s^2/A$, \\
+	$K_m$	& torque constant, $N \minus m/A$, \\
+	$L_a$	& armature inductance, H \\
+	$R_a$	& armature resistance, $\Omega$.
+\end{tabular}
+
+\noindent In order to be able to continue we need to define initial values for these parameters in the workspace.
+
+\begin{lstlisting}[style=My_MATLAB]
+>> B = 0.008;
+>> J = 5.7e-07;
+>> Km = 0.0134;
+>> La = 6.5e-05;
+>> Ra = 1.9;
+\end{lstlisting}
+
+The same data set will be used, as in Section \ref{Sec:system_identification}, namely \textit{collect\_data2}. The data set contains 6 matrices.
+
+\begin{table}
+	%\captionof{table}{Data set matrices}
+	\begin{tabular}{|l l|}
+	\hline 
+	inp\_duty &	The duty cycle of the pwm signal.\\
+	inp\_v\_pwm & The duty cycle translated in $\left[0-5\right]$ volts.\\
+	inp\_volt & The output voltage of the driver, the input voltage to the motor.\\
+	out\_abs & The absolute output of the system expressed to ticks per revolution.\\
+	out\_rel & The relative output of the system expressed to $\left[0-4098\right]$ ticks per revolution.\\
+	out\_rel\_deg & The relative output of the system expressed to $\left[0-360\right]$ degrees per revolution.\\
+	\hline
+	\end{tabular}
+	\caption{Data set matrices} 
+\end{table}
+
+
+
+
+
+
+\subsection{MATLAB Parameter Estimation Toolbox}
+
+\noindent The input of the model \ref{Fig:model_ss} is in voltage and this voltage is the output of the driver of the motor. Therefore the \textit{input data} that will be used will be the \textit{inp\_volt}. The chosen output is in degrees therefore the selected \textit{output data} is \textit{out\_rel\_deg}.
+
+By selecting \textit{$Analysis \rightarrow Parameter Estimation$} it opens the \textit{Parameter and Estimation Tools Manager} main window. In the first tab the user can add some information such as the title and author of the project.
+
+\begin{figure}[h!]
+	\includegraphics[scale=0.40]{/Estimation/param_main}
+\end{figure}	
+
+\noindent In the \textit{Transient Data tab} a new \textit{data} was created named \textit{collect\_data2}. And now the user is able to add the desired input/output data.  First the input,
+
+\begin{figure}[H]
+	\includegraphics[scale=0.40]{/Estimation/2_input_data}
+\end{figure}
+
+\noindent and then the output
+
+\begin{figure}[H]
+	\includegraphics[scale=0.40]{/Estimation/3_output_data}
+\end{figure}
+
+
+\noindent Next tab is \textit{Variables}, where by selecting \textit{Add} the user can choose which parameters wants to estimate. Since all these parameters are physical quantities, their minimum values are set to zero, as they cannot have negative values.
+
+\begin{figure}[H]
+	\includegraphics[scale=0.40]{/Estimation/4_parameters}
+\end{figure}
+
+\
+
+\begin{figure}[H]
+	\includegraphics[scale=0.40]{/Estimation/5_param_min}
+\end{figure}
+
+\noindent Now that the data are imported and the variables to estimate are chosen, in the \textit{Estimation} tab a new entry created called \textit{est\_collect\_data2}. There, the imported data are chosen,
+
+\begin{figure}[H]
+	\includegraphics[scale=0.40]{/Estimation/6_estimation_data}
+\end{figure}
+
+\noindent as well as the parameters,
+
+\begin{figure}[H]
+	\includegraphics[scale=0.40]{/Estimation/7_choose_param}
+\end{figure}
+
+\noindent and then everything is ready for the estimation process to begin. Before of that, by selecting the \textit{Show progress views}, the user can see the parameters trajectory and the result of the estimation during the process.
+
+\begin{figure}[H]
+	\includegraphics[scale=0.40]{/Estimation/8_ready}
+\end{figure}
+
+
+The result of the \textit{Parameter Estimation} is shown in Fig. \ref{Fig:param_fit} and Fig. \ref{Fig:param_trajectories}. It is shown that the trajectories converged relatively fast and the fit to the data is very good.
+
+\begin{figure}[H]
+	\includegraphics[scale=0.70]{/Estimation/param_fit}
+	\caption{Simulation vs. Measured Responses}
+	\label{Fig:param_fit}
+\end{figure}
+
+\
+
+
+\begin{figure}[H]
+	\includegraphics[scale=0.70]{/Estimation/param_trajectories}
+	\caption{Trajectories of Estimated Parameters}
+	\label{Fig:param_trajectories}
+\end{figure}
+
+
+The estimated parameters are,
+
+\begin{table}[H]
+	%\captionof{table}{Data set matrices}
+	\begin{tabular}{|l l|}
+	\hline 
+	B & 0.0098949 \\
+	J & 0.0014829 \\
+	Km & 0.11262 \\
+	La & 0.012109 \\
+	Ra & 2.2397 \\
+	\hline
+	\end{tabular}
+	\caption{Estimated parameters}
+	\label{Tab:est_param} 
+\end{table}
+
+
+
+
+\subsection{Validation}
+
+In order to validate the estimated parameters, the user only has to connect the \textit{Manual Switch} to the second input of the \textit{Signal Builder} (which is the same one used for the data acquisition) and run the simulation, as shown in Fig. \ref{Fig:validation}.
+
+\begin{figure}[H]
+	\includegraphics[scale=0.40]{/Estimation/validation_setup}
+	\caption{Validation model}
+	\label{Fig:validation}
+\end{figure}
+
+The result is compared with the \textit{out\_rel\_deg} of data set \textit{collect\_data\_2\_1.mat}. As it can be seen in the Fig. \ref{Fig:validation_fit} the result is not that good as in the case of transfer function identification. One of the reason for that, could be the unmodelled frictions in the motor. Also, the input of the system, is the \textit{input\_volt}. This voltage, that is the output of the driver of the motor, is not measured but calculated from the known PWM duty cycle. Finally, the simulink model does not contain the gear ratio. The estimated parameters are such as the effect of the gears is included in the model. All these result in not a such good fit on the measured dynamics but still good enough for someone to design a controller.
+
+\begin{figure}[H]
+	\includegraphics[scale=0.8]{/Estimation/validation_fit}
+	\caption{Validation of the estimated parameters}
+	\label{Fig:validation_fit}
+\end{figure}

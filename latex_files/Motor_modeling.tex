@@ -1,0 +1,271 @@
+\newpage
+
+
+\section{Modelling and Control}
+
+\subsection{Introduction}
+
+Most of the robots today are driven by electric motors. For large industrial robots typically are used brushless servo motors while small laboratory or hobby robots use brushed DC motors or stepper motors.
+
+Electric motors are compact and efficient. They do not produce very high torque but they can rotate at very high speed. To increase the torque, reduction gearboxes are used to tradeoff speed with increased torque. The disadvantage though is that gearboxes are increasing cost, weight but most important friction and mechanical noise.
+
+\subsection{Mathematical Modelling of DC Motor}\label{sub:modeling}
+
+\begin{figure}[b]
+	\begin{center}
+		\includegraphics[scale=0.5]{motor_with_gears}
+	\caption{Schematic representation of actuator-gear-load assembly for one joint.}
+	\label{Fig:motor}
+	\end{center}
+\end{figure}
+
+The analysis following is mainly a review of \cite{Modeling}.
+
+Figure \ref{Fig:motor} shows the schematic of the drive train of a typical robot joint. The torque developed on the motor shaft is directly proportional to the field flux and the armature current. The relationship among the developed torque, flux $\phi$, and current $i_a$ is
+
+\begin{equation}
+	T_m = K_m \phi i_a
+	\label{Eq:torque}
+\end{equation}
+
+\noindent where $T_m$ is the motor torque (N-m, lb-ft or oz-in), $\phi$ the magnetic flux (webers), $i_a$ the armature current (amperes), and $K_m$ is a proportional constant.
+
+In addition, when the conductor moves in the magnetic field, a voltage is generated across its terminals. This voltage, the \textbf{back emf}, which is proportional to the shaft velocity, tends to oppose the current flow. The relationship between the back emf and the shaft velocity is, 
+
+\begin{equation}
+	e_b = K_m \phi \omega_m
+	\label{Eq:bemf}
+\end{equation}
+
+\noindent where $e_b$ denoted the back emf (volts), and $\omega_m$ is the shaft velocity (rad/sec) of the motor. The equations \ref{Eq:torque} and \ref{Eq:bemf} form the basis of the dc-motor operation.
+
+\begin{figure}[h!]
+\begin{center}
+	\includegraphics[scale=0.3]{motor_circuit.png}
+	\caption{Schematic diagram for electrical drive system}	
+	\label{Fig:motor_circuit}
+\end{center}
+\end{figure}
+
+With reference to the circuit diagram of Figure \ref{Fig:motor_circuit}, the control of the dc motor is applied at the armature terminals in the form of the applied voltage $e_a(t)$. For linear analysis, we assume that the torque developed by the motors is proportional to the air-gap flux and the armature current. Thus
+
+\begin{equation}
+	T_m(t) = K_m \phi i_a(t)
+	\label{Eq:torque_phi}
+\end{equation}
+
+\noindent If we assume that $\phi$ is constant Equation \ref{Eq:torque_phi} is written
+
+\begin{equation}
+	T_m(t) = K_i i_a(t)
+\end{equation}
+
+\noindent where $K_i$ is the \textbf{torque constant} in N-m/A, lb-ft/A or oz-in./A.
+
+Although a dc motor by it self is basically an open-loop system, the state diagram and the block diagram show that the motor has a \textit{"built-in"} feedback loop caused by back emf. Physically, the back emf represents the feedback of a signal that is proportional to the negative of the speed of the motor. As seen from Equation \ref{Eq:bemf}, the back-emf constant $K_b$ represents an added term to the resistance $R_a$ and the viscous-friction coefficient $B_m$. Therefore, \textit{the back-emf is equivalent to an "electric friction", which tends to improve the stability of the motor, and in general, the stability of the system}.\newline
+
+\noindent Refer to Figure \ref{Fig:motor}, the schematic representation of an actuator-gear-load assembly for a single joint, in which \newline
+
+
+% Table with nomeclature
+\begin{tabular}{l l}
+	\(J_a\) & actuator inertia of one joint,\\
+	\(J_m\) & manipulator inertia of the joint fixtures at actuator side,\\
+	\(J_l\) & inertia of the manipulator link,\\
+	\(B_m\) & damping coefficient at actuator side\\
+	\(B_l\) & damping coefficient at load side\\
+	\(f_m\) & average friction torque\\
+	\(\tau_g\) & gravitational torque \\
+	\(\tau_m\) & generated torque at actuator shaft \\
+	\(\tau_l\) & internal load torque,\\
+	\(\theta_m\) & angular displacement at actuator shaft,\\
+	\(\theta_s\) & angular displacement at load side.
+\end{tabular}
+
+\begin{tabular}{l l l}
+	\(N_m\), \(N_s\) & number of teeth of the gears at the actuator shaft and load shaft, respectively,\\
+	\(r_m, r_s\) & pitch radii of the gears at the actuator shaft and load shaft, respectively
+\end{tabular} \newline
+
+\noindent Then
+
+\begin{equation} \label{eq:gear_ratio}
+	n = r_m/r_s = N_m/N_s \leq 1
+\end{equation}
+
+\noindent is the gear ratio. As indicated in Fig. \ref{Fig:motor_circuit}, the force $F$ is transmitted from the actuator to the load at the contacting point of the mating gears. Thus,
+
+\begin{equation} \label{eq:internal_load_torque}
+	\tau_l^{'} = equivalent\, internal\,load\,torque\,at\,actuator\,shaft = Fr_m
+\end{equation}
+
+\noindent and
+
+\begin{equation} \label{eq:tl}
+	\tau_l = F r_s
+\end{equation}
+
+\noindent which leads to
+
+\begin{equation} \label{eq:tl/tl}
+	\tau_l^{'}/\tau_l = r_m/r_s = n
+\end{equation}
+% \[ \tau_l^{'}/\tau_l = r_m/r_s = n \]
+
+\noindent or
+
+\begin{equation} \label{eq:tl_n_tl}
+	\tau_l^{'} = n \tau_l
+\end{equation}
+% \[ \tau_l^{'} = n \tau_l \]
+
+\noindent From Figure \ref{Fig:gears} , the pitch angle of one tooth is
+
+\begin{equation} \label{eq:theta_m}
+	\theta_m = 2 \pi / N_m
+\end{equation}
+% 
+\begin{equation} \label{eq:theta_s}
+	\theta_s = 2 \pi / N_s
+\end{equation}
+% \[ \theta_m = 2 \pi / N_m \]
+% \[ \theta_s = 2 \pi / N_s \]
+
+\noindent so that
+
+\begin{equation}	\label{eq:theta_s_n_theta_m}
+	\theta_s = \theta_m N_m \ N_s = n \theta_m
+\end{equation}
+% \[ \theta_s = \theta_m N_m \ N_s = n \theta_m \]
+
+\noindent By taking time derivatives on both sides of (\ref{eq:theta_s_n_theta_m}), one obtains relations between angular velocities and accelerations as
+
+\begin{equation} \label{eq:dot_theta_s}
+	\dot{\theta}_s = n\dot{\theta}_m
+\end{equation}
+%
+\begin{equation} \label{eq:dot_theta_m}
+	\ddot{\theta}_s = n \ddot{\theta}_m
+\end{equation}
+% \[ \dot{\theta_s} = n\dot{\theta_m} \]
+% \[ \ddot{\theta_s} = n \ddot{\theta_m} \]
+
+\begin{figure}[b]
+	\begin{center}
+		\includegraphics[scale=0.5]{gears}
+		\caption{Schematic of gear ratio}
+		\label{Fig:gears}
+	\end{center}
+\end{figure}
+
+
+From Figure \ref{Fig:motor}, it is seen that the internal load torque $t_l$ is required to overcome the link inertia effect $J_l \ddot{\theta_s}$ and damping effect $B_l \dot{\theta_s}$. Using D'Alembert's principle \textit{"$\sum{torque} = \sum{J \ddot{\theta}}$"}, one obtains
+
+\begin{equation} \label{eq:D'Alambert1}
+	\tau_l - B_l \dot{\theta}_s = J_l \ddot{\theta}_s
+\end{equation}
+
+\noindent Apply the same principle at the actuator shaft to obtain
+
+\begin{equation} \label{eq:D'Alambert2}
+	\tau_m - \tau_l^{'} - B_m \dot{\theta}_m = \left(J_a + J_m \right)\ddot{\theta}_m
+\end{equation}
+
+\noindent If we wish to express the torque relation at the actuator shaft, first substitute (\ref{eq:dot_theta_s}) and (\ref{eq:dot_theta_m}) into (\ref{eq:D'Alambert1}), and then combine the result with (\ref{eq:tl_n_tl}) to obtain
+
+\begin{equation} \label{eq:tl'}
+	\tau_l^{'} = n^2 \left(J_l \ddot{\theta}_m + B_l \dot{\theta}_m \right)
+\end{equation}
+
+\noindent Combining (\ref{eq:D'Alambert2}) and (\ref{eq:tl'}) yields
+
+\begin{equation} \label{eq:tm}
+	\tau_m = \left( J_a + J_m + n^2 J_l \right) \ddot{\theta}_m + \left(B_m + n^2 B_l \right) \dot{\theta}_m 
+\end{equation}
+
+\noindent where we can assign $ J_{eff} = \left(J_a + J_m + n^2 J_l \right)$ is the effective inertia and $ B_{eff} = \left( B_m + n^2 B_l \right)$ is the effective damping coefficient at the actuator shaft.
+
+To express the torque relation at the load shaft, eliminate $\ddot{\theta}_m$ and $\dot{\theta}_m$ among (\ref{eq:dot_theta_s}), (\ref{eq:dot_theta_m}) and (\ref{eq:tm}) to obtain
+
+\begin{equation} \label{tm/n}
+	\tau_m / n = \left[\left(J_a + J_m \right)/n^2 + J_l \right] \ddot{\theta}_s + \left(B_m/n^2 + B_l \right)\dot{\theta}_s
+\end{equation}
+
+\noindent where $ \left[\left(J_a + J_m \right)/n^2 + J_l \right] $ is the effective inertia and $\left(B_m/n^2 + B_l \right)$ is the effective damping coefficient at the load shaft. $\tau_m / n $ is the equivalent generated torque at the load shaft. 
+
+\begin{figure}[b]
+	\begin{center}
+		\includegraphics[scale=0.4]{motor_electrical}
+		\caption{DC motor electrical diagram}
+		\label{Fig:Electrical Diagram}
+	\end{center}
+\end{figure}
+
+The electrical actuators that used in industrial robots are armature controlled and their schematic diagram is shown in Figure \ref{Fig:Electrical Diagram} (and in Figure \ref{Fig:motor_circuit}). In this figure, $e_b$ is the back electromotive force (EMF) in volts in the armature windings which can be represented by
+
+\begin{equation} \label{eq:emf}
+	e(t) = K_b \dot{\theta}_m(t)
+\end{equation}
+
+\noindent where $K_b$ is the back EMF constant. Let L and R be the inductance of the motor armature windings, respectively. Then by applying Kirchhoff's voltage law to the armature circuit, one obtains
+
+\begin{equation} \label{eq:Kirchhof1}
+	v(t) - e(t) = L \frac{di(t)}{dt} + R i(t)
+\end{equation}
+
+\noindent which has an equivalent equation in frequency domain through Laplace transformation
+
+\begin{equation} \label{eq:Kirchhof1_Laplace}
+	V(s) - K_b s \Theta_m(s) = (Ls + R) I(s)
+\end{equation}
+
+\noindent where $s$ is the complex frequency in rad/s. The dc motor is operated in its linear range so that the generated torque is proportional to the armature current. the relation in the frequency domain is
+
+\begin{equation} \label{eq:Tm}
+	T_m(s) = K_I I(s)
+\end{equation}
+
+\noindent where $K_I$ is the torque constant. The motor shaft is mechanically connected to the actuator-gear-load assembly, as indicated in Figure \ref{Fig:Electrical Diagram}, with an effective inertia $J_{eff}$ and effective damping coefficient $B_{eff}$ at the actuator shaft. The relation among the mechanical components is described by (\ref{eq:tm}) which has Laplace transform equivalence
+
+\begin{equation} \label{eq:Tm_Laplace}
+	\begin{split}
+		T_m(s) &= \left[ \left( J_a + J_m + n^2 J_l \right)s^2 + \left(B_m + n^2 B_l 				\right) \right] \Theta_m(s)\\
+			   &= \left(J_{eff} s^2 + B_{eff} s \right) \Theta_m (s)
+	\end{split}
+\end{equation}
+
+\noindent Eliminating $T_m(s)$ and $I(s)$ in (\ref{eq:Kirchhof1_Laplace})-(\ref{eq:Tm_Laplace})
+
+\begin{equation} \label{eq:TF1}
+	\frac{\Theta_m (s)}{V(s)} = \frac{K_I}{s\left[L J_{eff} s^2 + \left(R J_{eff} + L B_{eff}\right)s + \left(R B_{eff}+ K_I K_B\right)\right]}
+\end{equation}
+
+\noindent which is the transfer function, from the applied voltage to the dc motor (input), to the angular displacement of the motor shaft (output).
+
+\newpage
+
+\subsection{Relation between $K_I$ and $K_b$}
+
+Although functionally the torque constant $K_I$ and the back-emf constant $K_b$ are two separate parameters, for a given motor, their values are closely related. To show the relationship, we write the mechanical power developed in the armature as
+
+\begin{equation}	\label{mechanical poewr in armature V1}
+	P = e(t) i_a(t)
+\end{equation}
+
+\noindent The mechanical power is also expressed as
+
+\begin{equation} \label{mechanical power in armature V2}
+	P = \tau_m(t) \dot{\theta}_m(t)
+\end{equation}
+
+\noindent where, in SI units, $T_m(t)$ is in $N \cdot m$ and $\omega_m(t)$ is in rad/sec. Now substituting Eqs. \ref{eq:tm} and \ref{eq:emf} in Eq. \ref{mechanical poewr in armature V1}, we get
+
+\begin{equation} \label{relation Km Kb}
+	P = \tau_m(t) \dot{\theta}_m(t) = K_b \dot{\theta}_m(t) \frac{\tau_m(t)}{K_I}
+\end{equation}
+
+\noindent for which we get 
+
+\begin{equation} \label{relation}
+	K_b (V/rad/sec) = K_i (N \cdot m/A)
+\end{equation}
